@@ -1,1081 +1,1003 @@
 <!DOCTYPE html>
-<html lang="pl" class="dark h-full">
+<html lang="pl" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fotowoltaika - DC Cable Tracker</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        neon: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            glow: '#10b981'
-                        },
-                        dark: {
-                            900: '#090d16',
-                            800: '#111827',
-                            700: '#1f2937',
-                            600: '#374151'
-                        }
-                    },
-                    boxShadow: {
-                        'neon-glow': '0 0 15px rgba(34, 197, 94, 0.4)',
-                        'neon-glow-lg': '0 0 25px rgba(34, 197, 94, 0.6)',
-                        'card': '0 4px 20px rgba(0, 0, 0, 0.4)'
-                    }
-                }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PV Cable Tracker - Ewidencja Zużycia Kabla DC</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            neon: {
+              DEFAULT: '#10b981', // emerald-500
+              glow: '#34d399',    // emerald-400
+              dark: '#064e3b'     // emerald-900
             }
+          },
+          boxShadow: {
+            'neon-glow': '0 0 15px rgba(16, 185, 129, 0.35)',
+            'neon-glow-lg': '0 0 25px rgba(16, 185, 129, 0.5)'
+          }
         }
-    </script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #090d16;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #1f2937;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #22c55e;
-        }
-    </style>
+      }
+    }
+  </script>
+  <style>
+    /* Premium dark custom scrollbars and form enhancements */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #09090b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #27272a;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #10b981;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    /* Smooth transitions */
+    .fade-in {
+      animation: fadeIn 0.3s ease-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Tap target helper */
+    .touch-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  </style>
 </head>
-<body class="bg-dark-900 text-slate-100 min-h-full flex flex-col justify-between">
+<body class="bg-zinc-950 text-zinc-100 font-sans antialiased min-h-screen flex flex-col selection:bg-emerald-500 selection:text-black">
 
-    <!-- Top Navigation Bar -->
-    <header class="sticky top-0 z-40 bg-dark-800/95 border-b border-dark-700 backdrop-blur-md px-4 py-3 shadow-md">
-        <div class="max-w-md mx-auto flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-                <div class="w-8 h-8 rounded-lg bg-neon-500 flex items-center justify-center text-dark-900 shadow-neon-glow">
-                    <i class="fa-solid fa-bolt text-lg font-black"></i>
-                </div>
-                <div>
-                    <h1 class="font-extrabold text-sm tracking-wide text-white">DC-CABLE <span class="text-neon-500">TRACKER</span></h1>
-                    <p class="text-[10px] text-gray-400 font-medium uppercase tracking-widest leading-none">PV Farm Manager</p>
-                </div>
-            </div>
-            <div class="flex items-center space-x-2">
-                <!-- Sync Status Badge & Button -->
-                <button id="sync-btn" onclick="fetchCloudData()" class="p-2 rounded-lg bg-dark-700 text-slate-300 hover:bg-dark-600 transition-all flex items-center justify-center relative">
-                    <i id="sync-icon" class="fa-solid fa-cloud-arrow-down text-base"></i>
-                    <span id="sync-dot" class="absolute top-1 right-1 flex h-2 w-2">
-                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-500 opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-2 w-2 bg-neon-500"></span>
-                    </span>
-                </button>
-                <!-- Settings Button -->
-                <button onclick="openSettingsModal()" class="p-2 rounded-lg bg-dark-700 text-slate-300 hover:bg-dark-600 transition-all">
-                    <i class="fa-solid fa-gears text-base"></i>
-                </button>
-            </div>
+  <!-- TOP NAVIGATION / HEADER -->
+  <header class="sticky top-0 z-40 bg-zinc-900/90 backdrop-blur-md border-b border-zinc-800 px-4 py-3 flex items-center justify-between shadow-lg">
+    <div class="flex items-center space-x-2">
+      <div class="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981] animate-pulse"></div>
+      <h1 class="text-sm md:text-base font-bold tracking-wider text-emerald-400">PV CABLE TRACKER</h1>
+    </div>
+    <div class="flex items-center space-x-2">
+      <!-- Network status badge -->
+      <span id="network-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 border border-zinc-700 flex items-center gap-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-zinc-500" id="network-dot"></span>
+        <span id="network-text">Offline</span>
+      </span>
+      <!-- Sync Button -->
+      <button onclick="fetchData()" id="btn-sync" class="touch-target p-2 text-zinc-400 hover:text-emerald-400 transition-colors rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700" title="Synchronizuj dane">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.253 8H18"></path></svg>
+      </button>
+      <!-- Settings Button -->
+      <button onclick="openSettingsModal()" class="touch-target p-2 text-zinc-400 hover:text-emerald-400 transition-colors rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700" title="Ustawienia">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- LOADING INDICATOR OVERLAY -->
+  <div id="loading-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center transition-all duration-300 hidden">
+    <div class="relative flex items-center justify-center">
+      <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-emerald-500"></div>
+      <div class="absolute h-10 w-10 rounded-full bg-emerald-500/10 shadow-[0_0_15px_rgba(16,185,129,0.3)] animate-ping"></div>
+    </div>
+    <p id="loading-text" class="mt-4 text-zinc-400 font-medium tracking-wide">Trwa synchronizacja danych...</p>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="flex-grow p-4 md:max-w-4xl md:mx-auto w-full flex flex-col justify-start">
+
+    <!-- GLOBAL KPI SUMMARY BAR -->
+    <div class="grid grid-cols-2 gap-3 mb-5" id="global-kpi-bar">
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-3 flex flex-col justify-between shadow-sm relative overflow-hidden">
+        <div class="absolute -right-3 -top-3 text-zinc-800/20 pointer-events-none">
+          <svg class="w-16 h-16" fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path></svg>
         </div>
-    </header>
+        <span class="text-[10px] text-zinc-400 font-semibold tracking-wider uppercase">Suma Całkowita</span>
+        <span class="text-xl md:text-2xl font-black text-emerald-400 mt-1" id="kpi-grand-total">0.00 <span class="text-xs font-normal text-zinc-500">m</span></span>
+      </div>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-3 flex flex-col justify-between shadow-sm relative overflow-hidden">
+        <div class="absolute -right-3 -top-3 text-zinc-800/20 pointer-events-none">
+          <svg class="w-16 h-16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+        </div>
+        <span class="text-[10px] text-zinc-400 font-semibold tracking-wider uppercase">Tryb Pracy</span>
+        <span class="text-sm md:text-base font-bold text-zinc-200 mt-2 flex items-center gap-1.5" id="kpi-work-mode">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Bębny
+        </span>
+      </div>
+    </div>
 
-    <!-- Main Scrollable Area -->
-    <main class="flex-grow max-w-md w-full mx-auto px-4 py-6 pb-24 overflow-y-auto">
+    <!-- ======================================================= -->
+    <!-- SCREEN 1: TEAM SELECTION (KROK 1) -->
+    <!-- ======================================================= -->
+    <section id="view-step-team" class="fade-in space-y-4">
+      <div class="text-center py-4">
+        <h2 class="text-xl font-extrabold text-zinc-100 tracking-tight">KROK 1: Wybór Zespołu</h2>
+        <p class="text-xs text-zinc-400 mt-1">Wybierz swój zespół, aby rozpocząć ewidencjonowanie pomiarów kabli</p>
+      </div>
+      <div id="team-list-container" class="grid grid-cols-1 gap-3">
+        <!-- Dynamic teams rendered here -->
+      </div>
+    </section>
+
+    <!-- ======================================================= -->
+    <!-- SCREEN 2: INVERTER SELECTION (KROK 2) -->
+    <!-- ======================================================= -->
+    <section id="view-step-inverters" class="fade-in space-y-4 hidden">
+      <!-- Back to step 1 button -->
+      <button onclick="goBackToStep1()" class="touch-target flex items-center space-x-1.5 text-zinc-400 hover:text-emerald-400 text-sm font-semibold transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        <span>Wróć do Zespołów</span>
+      </button>
+
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-3 flex justify-between items-center">
+        <div>
+          <span class="text-[10px] text-zinc-400 font-medium">Zalogowany Zespół:</span>
+          <p class="text-sm font-bold text-emerald-400" id="selected-team-display">Brak</p>
+        </div>
+        <div class="text-right">
+          <span class="text-[10px] text-zinc-400 font-medium">Suma Zespołu:</span>
+          <p class="text-sm font-bold text-zinc-200" id="team-total-display">0.00 m</p>
+        </div>
+      </div>
+
+      <!-- TRAFO FILTER TABS -->
+      <div>
+        <span class="text-xs text-zinc-400 font-bold uppercase tracking-wider mb-2 block">Filtr Trafostacji</span>
+        <div id="trafo-filter-container" class="flex flex-wrap gap-2 overflow-x-auto pb-1">
+          <!-- Filter buttons rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- INVERTER LIST -->
+      <div class="space-y-2">
+        <div class="flex justify-between items-center">
+          <span class="text-xs text-zinc-400 font-bold uppercase tracking-wider">Wybór Falownika (WR)</span>
+          <span class="text-[11px] text-zinc-500 font-medium">Kliknij kafelek, aby przejść do pomiarów</span>
+        </div>
+        <div id="inverters-list-container" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <!-- Inverters rendered dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================= -->
+    <!-- SCREEN 3: MONTER INPUT FORM (KROK 3) -->
+    <!-- ======================================================= -->
+    <section id="view-step-monter-form" class="fade-in space-y-4 hidden">
+      <!-- Navigation controls -->
+      <div class="flex items-center justify-between">
+        <button onclick="handleBackFromForm()" class="touch-target flex items-center space-x-1.5 text-zinc-400 hover:text-emerald-400 text-sm font-semibold transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+          <span>Wróć do Falowników</span>
+        </button>
+        <span id="active-inverter-badge" class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-bold tracking-wider">
+          WR 1.1
+        </span>
+      </div>
+
+      <!-- Lock Indicator Badge -->
+      <div id="lock-warning-badge" class="hidden bg-red-950/80 border border-red-500/30 text-red-200 rounded-xl p-3 flex items-start gap-2.5">
+        <svg class="w-5 h-5 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+        <div>
+          <h4 class="text-xs font-bold text-red-300">ZABLOKOWANE DO ODCZYTU</h4>
+          <p class="text-[11px] text-red-200/80 mt-0.5">Te dane zostały już wprowadzone i zsynchronizowane przez inny zespół (<span id="locked-team-name" class="font-bold underline"></span>). Nie możesz ich zmodyfikować.</p>
+        </div>
+      </div>
+
+      <!-- Live sum cards -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-3 flex flex-col justify-between">
+          <span class="text-[10px] text-zinc-400 uppercase tracking-wide">Suma Falownika WR</span>
+          <span class="text-lg font-black text-emerald-400 mt-1" id="inverter-live-total">0.00 m</span>
+        </div>
+        <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-3 flex flex-col justify-between">
+          <span class="text-[10px] text-zinc-400 uppercase tracking-wide font-medium">Bieżący Zespół</span>
+          <span class="text-xs font-bold text-zinc-200 mt-1 truncate" id="active-team-display">Brak</span>
+        </div>
+      </div>
+
+      <!-- FORM FIELDS CONTAINER -->
+      <div id="monter-fields-card" class="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 shadow-xl">
+        <h3 class="text-sm font-bold text-zinc-200 mb-4 pb-2 border-b border-zinc-800 flex items-center justify-between">
+          <span>Wpisy Pomiarowe</span>
+          <span id="form-mode-title" class="text-xs text-zinc-500 uppercase tracking-wider">Tryb Bębnów</span>
+        </h3>
+
+        <!-- Dynamic list of drum/string input rows -->
+        <div id="records-list" class="space-y-4 max-h-[400px] overflow-y-auto pr-1">
+          <!-- Form rows rendered dynamically -->
+        </div>
+
+        <!-- Add Item Row (Only for drums mode or if we dynamic addition is allowed) -->
+        <div class="mt-4 pt-4 border-t border-zinc-800 flex justify-between items-center" id="form-actions-row">
+          <button type="button" onclick="addNewRecordRow()" id="btn-add-row" class="touch-target px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-emerald-400 hover:text-emerald-300 border border-zinc-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            Dodaj kolejny Bęben
+          </button>
+          <span class="text-[10px] text-zinc-500" id="total-rows-counter">Bębny: 1</span>
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <div class="pt-2">
+        <button id="btn-save-send" onclick="submitMetersToServer()" class="touch-target w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold rounded-xl shadow-neon-glow hover:shadow-neon-glow-lg transition-all flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V3"></path></svg>
+          ZAPISZ I WYŚLIJ DO CHMURY
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: WARNING & UNSAVED ALERTS -->
+  <!-- ======================================================= -->
+  <div id="custom-warning-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all duration-300 hidden">
+    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 max-w-sm w-full shadow-2xl space-y-4">
+      <div class="flex items-center space-x-3 text-amber-400">
+        <svg class="w-8 h-8 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+        <h3 class="text-base font-extrabold text-zinc-100 tracking-tight">NIEWYSŁANE POMIARY!</h3>
+      </div>
+      <p class="text-xs text-zinc-300 leading-relaxed">Wykryto brak synchronizacji danych dla tego falownika z bazą Google Sheets. Opuszczenie widoku spowoduje bezpowrotną utratę wprowadzonych zmian.</p>
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button onclick="confirmAbandonChanges()" class="touch-target px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 border border-zinc-700 rounded-xl text-xs font-bold transition-all">
+          PORZUĆ ZMIANY
+        </button>
+        <button onclick="closeWarningModal()" class="touch-target px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black rounded-xl text-xs font-bold shadow-neon-glow transition-all">
+          ZOSTAŃ I WYŚLIJ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: CONFIGURATION & FACTORY RESET -->
+  <!-- ======================================================= -->
+  <div id="settings-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all duration-300 hidden">
+    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 max-w-md w-full shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-zinc-800">
+        <h3 class="text-sm font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
+          Ustawienia Systemowe
+        </h3>
+        <button onclick="closeSettingsModal()" class="touch-target text-zinc-400 hover:text-zinc-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <!-- App Script API URL -->
+      <div class="space-y-1">
+        <label for="input-api-url" class="text-xs font-bold text-zinc-400 block">Google Web App URL (Apps Script):</label>
+        <input type="text" id="input-api-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-emerald-500 transition-colors">
+        <p class="text-[10px] text-zinc-500">Wklej pełny URL aplikacji sieciowej wdrożonej w edytorze skryptów Arkusza.</p>
+      </div>
+
+      <!-- Settings notification message -->
+      <div id="settings-msg" class="hidden text-[11px] p-2 rounded-lg"></div>
+
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button onclick="saveApiUrl()" class="touch-target py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold rounded-xl text-xs transition-all">
+          ZAPISZ URL API
+        </button>
+        <button onclick="triggerFactoryReset()" class="touch-target py-2 bg-red-900/40 hover:bg-red-900/60 text-red-200 border border-red-500/30 rounded-xl text-xs font-bold transition-all">
+          FACTORY RESET
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="mt-auto py-4 border-t border-zinc-900 bg-zinc-950/80 px-4 text-center">
+    <p class="text-[10px] text-zinc-600">PV Cable Tracker SPA v2.1.0 • System Ewidencji Zużycia Okablowania Solarnego</p>
+  </footer>
+
+  <!-- CORE APP ENGINE (JAVASCRIPT) -->
+  <script>
+    // State management variables
+    let state = {
+      apiUrl: localStorage.getItem('pv_cable_tracker_api_url') || '',
+      config: {
+        workMode: "Bębny",
+        teamsCount: 2,
+        trafos: { "Trafo 1": 12, "Trafo 2": 12 },
+        stringsCount: 12
+      },
+      meters: [], // Full record base from backend
+      selectedTeam: "",
+      selectedTrafoFilter: "Wszystkie",
+      selectedInverter: "",
+      localEntries: [], // Current editor rows for chosen inverter
+      hasUnsavedChanges: false,
+      isEditLocked: false
+    };
+
+    // Initialize application on load
+    window.onload = function() {
+      // Setup network listeners
+      updateNetworkStatus();
+      window.addEventListener('online', updateNetworkStatus);
+      window.addEventListener('offline', updateNetworkStatus);
+
+      // Initial render check
+      if (!state.apiUrl) {
+        showStatusMessage("Aby rozpocząć, wejdź w ustawienia (ikona koła zębatego) i wklej poprawny adres URL skryptu Google.", "error");
+        openSettingsModal();
+      } else {
+        fetchData();
+      }
+      renderApp();
+    };
+
+    // Update internet connection UI element
+    function updateNetworkStatus() {
+      const dot = document.getElementById('network-dot');
+      const text = document.getElementById('network-text');
+      const badge = document.getElementById('network-badge');
+
+      if (navigator.onLine) {
+        dot.className = "w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]";
+        text.innerText = "Online";
+        badge.className = "text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1";
+      } else {
+        dot.className = "w-1.5 h-1.5 rounded-full bg-zinc-500";
+        text.innerText = "Offline";
+        badge.className = "text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-500 border border-zinc-700 flex items-center gap-1";
+      }
+    }
+
+    // Dynamic UI router/render logic
+    function renderApp() {
+      // Set global counters
+      const grandTotal = calculateGrandTotal();
+      document.getElementById('kpi-grand-total').innerHTML = `${grandTotal.toFixed(2)} <span class="text-xs font-normal text-zinc-500">m</span>`;
+      document.getElementById('kpi-work-mode').innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ${state.config.workMode}`;
+
+      // Dynamically display correct step/view
+      if (!state.selectedTeam) {
+        showView('view-step-team');
+        renderTeamSelection();
+      } else if (!state.selectedInverter) {
+        showView('view-step-inverters');
+        renderInverterSelection();
+      } else {
+        showView('view-step-monter-form');
+        renderMonterForm();
+      }
+    }
+
+    function showView(viewId) {
+      const views = ['view-step-team', 'view-step-inverters', 'view-step-monter-form'];
+      views.forEach(id => {
+        const element = document.getElementById(id);
+        if (id === viewId) {
+          element.classList.remove('hidden');
+        } else {
+          element.classList.add('hidden');
+        }
+      });
+    }
+
+    // =======================================================
+    // STEP 1: TEAM SELECTION LOGIC
+    // =======================================================
+    function renderTeamSelection() {
+      const container = document.getElementById('team-list-container');
+      container.innerHTML = "";
+
+      const teamCount = state.config.teamsCount || 2;
+      for (let i = 1; i <= teamCount; i++) {
+        const teamName = `Team ${i}`;
+        const teamTotal = calculateTeamTotal(teamName);
+
+        const card = document.createElement('button');
+        card.type = "button";
+        card.className = "touch-target w-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-emerald-500/50 p-4 rounded-2xl flex items-center justify-between transition-all group hover:shadow-neon-glow";
+        card.onclick = () => selectTeam(teamName);
+
+        card.innerHTML = `
+          <div class="flex items-center space-x-3.5 text-left">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold group-hover:bg-emerald-500 group-hover:text-black transition-all">
+              T${i}
+            </div>
+            <div>
+              <span class="text-xs text-zinc-500 font-medium">ZESPÓŁ ROBOCZY</span>
+              <h4 class="text-base font-extrabold text-zinc-100">${teamName}</h4>
+            </div>
+          </div>
+          <div class="text-right flex items-center space-x-2">
+            <div>
+              <span class="text-[10px] text-zinc-500 uppercase font-medium">Zużycie</span>
+              <p class="text-xs font-bold text-zinc-300">${teamTotal.toFixed(2)} m</p>
+            </div>
+            <svg class="w-5 h-5 text-zinc-600 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+          </div>
+        `;
+        container.appendChild(card);
+      }
+    }
+
+    function selectTeam(teamName) {
+      state.selectedTeam = teamName;
+      renderApp();
+    }
+
+    function goBackToStep1() {
+      state.selectedTeam = "";
+      renderApp();
+    }
+
+    // =======================================================
+    // STEP 2: INVERTER SELECTION LOGIC
+    // =======================================================
+    function renderInverterSelection() {
+      document.getElementById('selected-team-display').innerText = state.selectedTeam;
+      document.getElementById('team-total-display').innerText = `${calculateTeamTotal(state.selectedTeam).toFixed(2)} m`;
+
+      // Render Trafo Filter Tabs
+      const filterContainer = document.getElementById('trafo-filter-container');
+      filterContainer.innerHTML = "";
+
+      // Add "All" option
+      const btnAll = document.createElement('button');
+      btnAll.className = `px-3 py-1.5 rounded-full text-xs font-bold transition-all border whitespace-nowrap ${state.selectedTrafoFilter === 'Wszystkie' ? 'bg-emerald-500 text-black border-emerald-500 shadow-neon-glow' : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700'}`;
+      btnAll.innerText = "Wszystkie";
+      btnAll.onclick = () => filterTrafos('Wszystkie');
+      filterContainer.appendChild(btnAll);
+
+      // Render actual Trafo tabs
+      Object.keys(state.config.trafos).forEach(trafoName => {
+        const btn = document.createElement('button');
+        btn.className = `px-3 py-1.5 rounded-full text-xs font-bold transition-all border whitespace-nowrap ${state.selectedTrafoFilter === trafoName ? 'bg-emerald-500 text-black border-emerald-500 shadow-neon-glow' : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700'}`;
+        btn.innerText = trafoName;
+        btn.onclick = () => filterTrafos(trafoName);
+        filterContainer.appendChild(btn);
+      });
+
+      // Render dynamic grid of Inverters
+      const invertersContainer = document.getElementById('inverters-list-container');
+      invertersContainer.innerHTML = "";
+
+      Object.entries(state.config.trafos).forEach(([trafoName, wrCount]) => {
+        // Filter elements by active tab
+        if (state.selectedTrafoFilter !== 'Wszystkie' && state.selectedTrafoFilter !== trafoName) return;
+
+        // Extract clean trafo number for WR format naming
+        const trafoNum = trafoName.replace(/[^0-9]/g, "") || "1";
+
+        for (let j = 1; j <= wrCount; j++) {
+          const inverterName = `WR ${trafoNum}.${j}`;
+          const inverterTotal = calculateInverterTotal(inverterName);
+          const hasData = inverterTotal > 0;
+          
+          // Detect which team inserted data first
+          const firstTeam = getInverterTeamOwner(inverterName);
+
+          const button = document.createElement('button');
+          button.className = `touch-target p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all group ${hasData ? 'bg-zinc-900 border-emerald-500/30 hover:border-emerald-500/70 shadow-neon-glow' : 'bg-zinc-900/45 border-zinc-800/80 hover:border-zinc-800'}`;
+          button.onclick = () => selectInverter(inverterName, trafoName);
+
+          button.innerHTML = `
+            <div class="flex items-center justify-between w-full">
+              <span class="text-xs font-black text-zinc-100 tracking-wide group-hover:text-emerald-400 transition-colors">${inverterName}</span>
+              ${hasData ? `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]"></span>` : ''}
+            </div>
+            <div class="mt-4">
+              <span class="text-[9px] text-zinc-500 uppercase font-semibold block tracking-wider">Zużycie kabla</span>
+              <span class="text-sm font-extrabold ${hasData ? 'text-emerald-400' : 'text-zinc-400'}">${inverterTotal.toFixed(2)} m</span>
+              ${firstTeam ? `<span class="text-[8px] block text-zinc-500 font-bold tracking-tight mt-1 truncate">Zapis: ${firstTeam}</span>` : ''}
+            </div>
+          `;
+          invertersContainer.appendChild(button);
+        }
+      });
+    }
+
+    function filterTrafos(filter) {
+      state.selectedTrafoFilter = filter;
+      renderInverterSelection();
+    }
+
+    function selectInverter(inverterName, trafoName) {
+      state.selectedInverter = inverterName;
+      state.activeTrafo = trafoName;
+
+      // Extract existing entries from global state database for this WR
+      const existing = state.meters.filter(m => m.Falownik_WR === inverterName);
+
+      // Check for locking: is it locked because another team entered the data?
+      const teamOwner = getInverterTeamOwner(inverterName);
+      if (teamOwner && teamOwner !== state.selectedTeam) {
+        state.isEditLocked = true;
+      } else {
+        state.isEditLocked = false;
+      }
+
+      state.localEntries = [];
+
+      if (existing.length > 0) {
+        // Map backend objects to our editable format
+        state.localEntries = existing.map(e => ({
+          ID: e.ID,
+          Data_Wpisu: e.Data_Wpisu,
+          Team: e.Team,
+          Trafostacja: e.Trafostacja,
+          Falownik_WR: e.Falownik_WR,
+          Numer_Bębna_Stringu: e.Numer_Bębna_Stringu,
+          Dlugosc_Bebna: parseFloat(e.Dlugosc_Bebna) || 0,
+          Odczyt_Start: parseFloat(e.Odczyt_Start) || 0,
+          Odczyt_Koniec: parseFloat(e.Odczyt_Koniec) || 0,
+          Zuzycie: parseFloat(e.Zuzycie) || 0,
+          Zapas: parseFloat(e.Zapas) || 0
+        }));
+      } else {
+        // Initialize clean entry structures depending on Work Mode
+        if (state.config.workMode === "Bębny") {
+          // One default reel of 500m
+          state.localEntries.push(createEmptyRecord("Bęben #1", 500));
+        } else {
+          // String mode - dynamic strings count populated initially
+          const strCount = state.config.stringsCount || 12;
+          for (let s = 1; s <= strCount; s++) {
+            state.localEntries.push(createEmptyRecord(`String #${s}`, 0));
+          }
+        }
+      }
+
+      state.hasUnsavedChanges = false;
+      renderApp();
+    }
+
+    // Helper to generate a standardized empty record
+    function createEmptyRecord(label, defaultLength) {
+      return {
+        ID: generateUUID(),
+        Data_Wpisu: new Date().toISOString(),
+        Team: state.selectedTeam,
+        Trafostacja: state.activeTrafo.replace("Trafo ", ""),
+        Falownik_WR: state.selectedInverter,
+        Numer_Bębna_Stringu: label,
+        Dlugosc_Bebna: defaultLength,
+        Odczyt_Start: 0,
+        Odczyt_Koniec: 0,
+        Zuzycie: 0,
+        Zapas: 0
+      };
+    }
+
+    // =======================================================
+    // STEP 3: MONTER FORM & CALCULATION ENGINE
+    // =======================================================
+    function renderMonterForm() {
+      document.getElementById('active-inverter-badge').innerText = state.selectedInverter;
+      document.getElementById('active-team-display').innerText = state.selectedTeam;
+
+      const liveSum = calculateInverterLiveTotal();
+      document.getElementById('inverter-live-total').innerText = `${liveSum.toFixed(2)} m`;
+
+      // Render Lock banner UI
+      const lockWarning = document.getElementById('lock-warning-badge');
+      const lockTeamName = document.getElementById('locked-team-name');
+      const btnAddRow = document.getElementById('btn-add-row');
+      const btnSaveSend = document.getElementById('btn-save-send');
+
+      if (state.isEditLocked) {
+        lockWarning.classList.remove('hidden');
+        lockTeamName.innerText = getInverterTeamOwner(state.selectedInverter);
+        if (btnAddRow) btnAddRow.classList.add('hidden');
+        btnSaveSend.classList.add('hidden');
+      } else {
+        lockWarning.classList.add('hidden');
+        if (btnAddRow) btnAddRow.classList.remove('hidden');
+        btnSaveSend.classList.remove('hidden');
+      }
+
+      // Configure layout depending on dynamic configuration
+      const recordsContainer = document.getElementById('records-list');
+      recordsContainer.innerHTML = "";
+
+      const modeTitle = document.getElementById('form-mode-title');
+      const rowsCounter = document.getElementById('total-rows-counter');
+
+      if (state.config.workMode === "Bębny") {
+        modeTitle.innerText = "Tryb Bębnów";
+        rowsCounter.innerText = `Bębnów: ${state.localEntries.length}`;
+        if (btnAddRow) btnAddRow.style.display = "flex";
+      } else {
+        modeTitle.innerText = "Tryb Stringów";
+        rowsCounter.innerText = `Stringów: ${state.localEntries.length}`;
+        if (btnAddRow) btnAddRow.style.display = "none"; // Hard locked count
+      }
+
+      state.localEntries.forEach((entry, index) => {
+        const itemRow = document.createElement('div');
+        itemRow.className = "p-3.5 bg-zinc-950 border border-zinc-800/80 rounded-xl space-y-3 relative";
+
+        // Generate card layout based on Mode
+        if (state.config.workMode === "Bębny") {
+          itemRow.innerHTML = `
+            <div class="flex justify-between items-center pb-2 border-b border-zinc-900">
+              <input type="text" value="${entry.Numer_Bębna_Stringu}" onchange="updateRecordField(${index}, 'Numer_Bębna_Stringu', this.value)" ${state.isEditLocked ? 'disabled' : ''} class="bg-transparent font-bold text-xs text-zinc-100 focus:outline-none focus:border-b focus:border-emerald-500 w-32 uppercase">
+              ${(state.localEntries.length > 1 && !state.isEditLocked) ? `
+                <button type="button" onclick="removeRecordRow(${index})" class="touch-target text-zinc-500 hover:text-red-400 transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+              ` : ''}
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <label class="text-[9px] text-zinc-500 font-bold block uppercase mb-1">Dł. całkowita (M)</label>
+                <input type="number" step="any" value="${entry.Dlugosc_Bebna}" oninput="updateRecordField(${index}, 'Dlugosc_Bebna', this.value)" ${state.isEditLocked ? 'disabled' : ''} class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
+              </div>
+              <div>
+                <label class="text-[9px] text-zinc-500 font-bold block uppercase mb-1">Start (M)</label>
+                <input type="number" step="any" value="${entry.Odczyt_Start}" oninput="updateRecordField(${index}, 'Odczyt_Start', this.value)" ${state.isEditLocked ? 'disabled' : ''} class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
+              </div>
+              <div>
+                <label class="text-[9px] text-zinc-500 font-bold block uppercase mb-1">Koniec (M)</label>
+                <input type="number" step="any" value="${entry.Odczyt_Koniec}" oninput="updateRecordField(${index}, 'Odczyt_Koniec', this.value)" ${state.isEditLocked ? 'disabled' : ''} class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 pt-2 border-t border-zinc-900/60 text-xs font-medium">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[9px] text-zinc-500 uppercase">Zużycie:</span>
+                <span class="font-extrabold text-emerald-400 text-xs">${entry.Zuzycie.toFixed(2)} m</span>
+              </div>
+              <div class="flex items-center gap-1.5 justify-end">
+                <span class="text-[9px] text-zinc-500 uppercase">Zapas:</span>
+                <span class="font-extrabold text-indigo-400 text-xs">${entry.Zapas.toFixed(2)} m</span>
+              </div>
+            </div>
+          `;
+        } else {
+          // String mode - simplified layouts
+          itemRow.innerHTML = `
+            <div class="flex items-center justify-between pb-1">
+              <span class="font-bold text-xs text-zinc-300">${entry.Numer_Bębna_Stringu}</span>
+              <div class="flex items-center gap-1">
+                <span class="text-[10px] text-zinc-500">Zużycie:</span>
+                <span class="text-xs font-black text-emerald-400">${entry.Zuzycie.toFixed(2)} m</span>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-[8px] text-zinc-500 font-bold block uppercase mb-1">Start (M)</label>
+                <input type="number" step="any" value="${entry.Odczyt_Start}" oninput="updateRecordField(${index}, 'Odczyt_Start', this.value)" ${state.isEditLocked ? 'disabled' : ''} class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
+              </div>
+              <div>
+                <label class="text-[8px] text-zinc-500 font-bold block uppercase mb-1">Koniec (M)</label>
+                <input type="number" step="any" value="${entry.Odczyt_Koniec}" oninput="updateRecordField(${index}, 'Odczyt_Koniec', this.value)" ${state.isEditLocked ? 'disabled' : ''} class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
+              </div>
+            </div>
+          `;
+        }
+
+        recordsContainer.appendChild(itemRow);
+      });
+    }
+
+    // Dynamic field update logic with mathematical validation
+    function updateRecordField(index, fieldName, value) {
+      if (state.isEditLocked) return;
+
+      const record = state.localEntries[index];
+      
+      if (fieldName === 'Numer_Bębna_Stringu') {
+        record[fieldName] = value;
+      } else {
+        record[fieldName] = parseFloat(value) || 0;
+      }
+
+      // MATHEMATICAL FORMULA IMPLEMENTATION (Absolute value consumption / fallback logic)
+      record.Zuzycie = Math.abs(record.Odczyt_Start - record.Odczyt_Koniec);
+
+      if (state.config.workMode === "Bębny") {
+        if (record.Dlugosc_Bebna === 0) {
+          record.Zapas = 0; // SPECIAL EXCEPTION: If length is 0, margin is forced to 0
+        } else {
+          record.Zapas = record.Dlugosc_Bebna - record.Zuzycie;
+        }
+      } else {
+        record.Dlugosc_Bebna = 0;
+        record.Zapas = 0;
+      }
+
+      state.hasUnsavedChanges = true;
+
+      // Realtime update totals inside UI
+      const liveSum = calculateInverterLiveTotal();
+      document.getElementById('inverter-live-total').innerText = `${liveSum.toFixed(2)} m`;
+    }
+
+    // Append new row in Reels mode (defaults to 500m)
+    function addNewRecordRow() {
+      if (state.isEditLocked) return;
+
+      const nextNum = state.localEntries.length + 1;
+      state.localEntries.push(createEmptyRecord(`Bęben #${nextNum}`, 500));
+      state.hasUnsavedChanges = true;
+      renderMonterForm();
+    }
+
+    // Remove targeted row
+    function removeRecordRow(index) {
+      if (state.isEditLocked) return;
+      if (state.localEntries.length <= 1) return;
+
+      state.localEntries.splice(index, 1);
+      state.hasUnsavedChanges = true;
+      renderMonterForm();
+    }
+
+    // Warn users trying to exit with unsaved changes
+    function handleBackFromForm() {
+      if (state.hasUnsavedChanges) {
+        openWarningModal();
+      } else {
+        state.selectedInverter = "";
+        renderApp();
+      }
+    }
+
+    // =======================================================
+    // MATH AGGREGATIONS
+    // =======================================================
+    function calculateGrandTotal() {
+      return state.meters.reduce((acc, entry) => acc + (parseFloat(entry.Zuzycie) || 0), 0);
+    }
+
+    function calculateTeamTotal(teamName) {
+      return state.meters
+        .filter(entry => entry.Team === teamName)
+        .reduce((acc, entry) => acc + (parseFloat(entry.Zuzycie) || 0), 0);
+    }
+
+    function calculateInverterTotal(inverterName) {
+      return state.meters
+        .filter(entry => entry.Falownik_WR === inverterName)
+        .reduce((acc, entry) => acc + (parseFloat(entry.Zuzycie) || 0), 0);
+    }
+
+    function calculateInverterLiveTotal() {
+      return state.localEntries.reduce((acc, entry) => acc + (entry.Zuzycie || 0), 0);
+    }
+
+    // Retrieve what team was first to save entries inside targeted inverter
+    function getInverterTeamOwner(inverterName) {
+      const records = state.meters.filter(m => m.Falownik_WR === inverterName);
+      if (records.length > 0 && records[0].Team) {
+        return records[0].Team;
+      }
+      return null;
+    }
+
+    // =======================================================
+    // DATABASE CLOUD SYNCHRONIZATION API
+    // =======================================================
+    function showLoading(show, message = "Trwa synchronizacja danych...") {
+      const overlay = document.getElementById('loading-overlay');
+      const text = document.getElementById('loading-text');
+      if (show) {
+        text.innerText = message;
+        overlay.classList.remove('hidden');
+      } else {
+        overlay.classList.add('hidden');
+      }
+    }
+
+    // GET Request - Pull configuration and current dataset
+    function fetchData() {
+      if (!state.apiUrl) return;
+
+      showLoading(true, "Pobieranie konfiguracji z chmury...");
+
+      fetch(state.apiUrl)
+        .then(response => {
+          if (!response.ok) throw new Error("Network response not OK");
+          return response.json();
+        })
+        .then(data => {
+          if (data.status === "success") {
+            state.config = data.config;
+            state.meters = data.meters || [];
+            updateNetworkStatus();
+            renderApp();
+          } else {
+            showStatusMessage("Błąd pobierania danych: " + data.message, "error");
+          }
+        })
+        .catch(error => {
+          console.error("API error:", error);
+          showStatusMessage("Błąd połączenia z chmurą. Pracujesz offline na danych z pamięci podręcznej.", "error");
+        })
+        .finally(() => {
+          showLoading(false);
+        });
+    }
+
+    // POST Request - Push active inverter measurements to cloud
+    function submitMetersToServer() {
+      if (state.isEditLocked) return;
+      if (!state.apiUrl) {
+        openSettingsModal();
+        return;
+      }
+
+      showLoading(true, "Zapisywanie wpisów w Arkuszu Google...");
+
+      // Set date timestamp before post
+      const payloadDate = new Date().toLocaleString("pl-PL");
+      const mappedPayload = state.localEntries.map(e => ({
+        ...e,
+        Data_Wpisu: payloadDate
+      }));
+
+      const body = {
+        action: "saveMeters",
+        selectedInverter: state.selectedInverter,
+        data: mappedPayload
+      };
+
+      fetch(state.apiUrl, {
+        method: 'POST',
+        mode: 'no-cors', // Standard cross-origin redirect fallback
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      })
+      .then(() => {
+        // Since no-cors hides response metadata, we will assume success,
+        // locally update database caches, reset dirty state and router back
+        state.hasUnsavedChanges = false;
         
-        <!-- API Status Notification Banner -->
-        <div id="connection-banner" class="hidden mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs flex items-center space-x-3">
-            <i class="fa-solid fa-circle-exclamation text-lg flex-shrink-0 animate-pulse"></i>
-            <div>
-                <span class="font-bold">Tryb Offline / Błąd połączenia.</span> Korzystasz z lokalnej pamięci podręcznej. Skonfiguruj poprawny URL skryptu w ustawieniach.
-            </div>
-        </div>
-
-        <!-- APP CONTENT ROOT -->
-        <div id="app-view">
-            <!-- Dynamic content will be injected here by JS -->
-        </div>
-
-    </main>
-
-    <!-- Floating Bottom Stats Bar (Visible when team selected) -->
-    <footer id="bottom-stats-bar" class="fixed bottom-0 left-0 right-0 bg-dark-800/90 border-t border-dark-700 backdrop-blur-md py-3 px-4 shadow-lg z-30 transition-transform duration-300 transform translate-y-full">
-        <div class="max-w-md mx-auto flex items-center justify-between">
-            <div>
-                <p class="text-[10px] text-gray-400 uppercase tracking-widest">Suma całego projektu</p>
-                <p class="text-xl font-black text-white"><span id="total-global-meters">0.00</span> <span class="text-neon-500 text-xs">m</span></p>
-            </div>
-            <div class="text-right flex items-center space-x-4">
-                <div>
-                    <p id="active-team-label" class="text-[10px] text-neon-500 font-bold uppercase tracking-widest">ZESPÓŁ: -</p>
-                    <p class="text-xs text-gray-400">Wybrany falownik: <span id="active-wr-label" class="text-white font-bold">-</span></p>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Modal: Settings & Config -->
-    <div id="settings-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-opacity duration-300 opacity-0">
-        <div class="bg-dark-800 border border-dark-700 w-full max-w-sm rounded-2xl overflow-hidden shadow-neon-glow p-5 flex flex-col space-y-4">
-            <div class="flex justify-between items-center border-b border-dark-700 pb-3">
-                <h3 class="font-bold text-lg text-white"><i class="fa-solid fa-gears text-neon-500 mr-2"></i>Konfiguracja Systemu</h3>
-                <button onclick="closeSettingsModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <div class="space-y-3 text-sm">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Google Web App URL</label>
-                    <input type="text" id="setting-gas-url" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-neon-500 text-xs" placeholder="https://script.google.com/macros/s/.../exec">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Tryb Pracy</label>
-                        <select id="setting-work-mode" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-neon-500 text-xs">
-                            <option value="Bębny">Bębny (Pełny)</option>
-                            <option value="Stringi">Stringi (Prosty)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Ilość Teamów</label>
-                        <input type="number" id="setting-teams-count" min="1" max="10" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-neon-500 text-xs">
-                    </div>
-                </div>
-                <div class="border-t border-dark-700 pt-3">
-                    <p class="text-[11px] text-gray-400 mb-2">Mapowanie Trafostacji i Falowników:</p>
-                    <div class="grid grid-cols-2 gap-2" id="trafos-mapping-inputs">
-                        <!-- Dynamic inputs mapping -->
-                    </div>
-                </div>
-                <div class="pt-3 border-t border-dark-700 flex flex-col space-y-2">
-                    <button onclick="saveLocalSettings()" class="w-full py-2.5 bg-neon-500 text-dark-900 font-bold rounded-xl shadow-neon-glow hover:bg-neon-600 transition-all text-xs">
-                        ZAPISZ USTAWIENIA LOKALNIE
-                    </button>
-                    <button onclick="confirmFactoryReset()" class="w-full py-2.5 bg-red-600/20 border border-red-500/30 text-red-400 font-bold rounded-xl hover:bg-red-600 hover:text-white transition-all text-xs">
-                        <i class="fa-solid fa-trash-can mr-1"></i> PRZYWRÓĆ USTAWIENIA FABRYCZNE
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal: Confirmation Unsaved Changes Warning -->
-    <div id="warning-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-dark-800 border-2 border-amber-500 w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl p-6 text-center space-y-4">
-            <div class="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto animate-bounce">
-                <i class="fa-solid fa-triangle-exclamation text-3xl"></i>
-            </div>
-            <div>
-                <h3 class="font-extrabold text-xl text-white uppercase tracking-wide">NIEWYSŁANE POMIARY!</h3>
-                <p class="text-sm text-gray-300 mt-2">Wykryto brak synchronizacji falownika z arkuszem Google. Wyjście spowoduje utratę nowo wpisanych danych.</p>
-            </div>
-            <div class="flex flex-col space-y-2 pt-2">
-                <button id="warning-stay-btn" class="w-full py-3 bg-neon-500 text-dark-900 font-extrabold rounded-xl shadow-neon-glow text-sm">
-                    ZOSTAŃ I WYŚLIJ
-                </button>
-                <button id="warning-discard-btn" class="w-full py-3 bg-dark-700 text-slate-300 font-bold rounded-xl text-sm">
-                    PORZUĆ ZMIANY
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal: Factory Reset Confirm -->
-    <div id="reset-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-dark-800 border-2 border-red-500 w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl p-6 text-center space-y-4">
-            <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto">
-                <i class="fa-solid fa-circle-exclamation text-3xl"></i>
-            </div>
-            <div>
-                <h3 class="font-extrabold text-xl text-white uppercase tracking-wide">CZY JESTEŚ PEWIEN?</h3>
-                <p class="text-sm text-gray-300 mt-2">Ta operacja CAŁKOWICIE wyczyści dane w Arkuszu Google (zakładka "Metry") i przywróci domyślną konfigurację fabryczną.</p>
-            </div>
-            <div class="flex flex-col space-y-2 pt-2">
-                <button id="reset-confirm-btn" onclick="executeFactoryReset()" class="w-full py-3 bg-red-600 text-white font-extrabold rounded-xl text-sm shadow-lg hover:bg-red-700 transition-all">
-                    TAK, WYCZYŚĆ I RESETUJ
-                </button>
-                <button onclick="closeResetModal()" class="w-full py-3 bg-dark-700 text-slate-300 font-bold rounded-xl text-sm">
-                    ANULUJ
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Floating Loading/Sync Overlay -->
-    <div id="loading-overlay" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-[100] flex items-center justify-center flex-col space-y-3 hidden">
-        <div class="relative w-16 h-16">
-            <div class="absolute inset-0 border-4 border-dark-700 rounded-full"></div>
-            <div class="absolute inset-0 border-4 border-neon-500 rounded-full animate-spin border-t-transparent"></div>
-        </div>
-        <p id="loading-text" class="text-sm font-bold tracking-widest uppercase text-neon-500 animate-pulse">Synchronizacja danych...</p>
-    </div>
-
-    <!-- Toast Notification Message -->
-    <div id="toast" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-2 text-xs font-bold transition-all duration-300 translate-y-20 opacity-0 z-50 pointer-events-none">
-        <i class="fa-solid fa-circle-check text-base"></i>
-        <span id="toast-message">Operacja powiodła się!</span>
-    </div>
-
-    <script>
-        // Default Factory Configuration
-        const DEFAULTS = {
-            gasUrl: "",
-            config: {
-                workMode: "Bębny",
-                teamsCount: 2,
-                trafos: {
-                    "Trafo 1": 12,
-                    "Trafo 2": 12
-                },
-                stringsCount: 12
-            }
-        };
-
-        // Reactive Application State
-        let state = {
-            gasUrl: localStorage.getItem('dc_cable_gas_url') || DEFAULTS.gasUrl,
-            config: JSON.parse(localStorage.getItem('dc_cable_config')) || DEFAULTS.config,
-            savedMeters: JSON.parse(localStorage.getItem('dc_cable_saved_meters')) || [],
-            activeStep: 'teams', // 'teams' | 'inverters' | 'monter-form'
-            selectedTeam: localStorage.getItem('dc_cable_selected_team') || null,
-            selectedTrafoFilter: 'Wszystkie',
-            selectedInverter: null, // format e.g. "WR 1.2"
-            unsavedChanges: false,
-            localFormCache: {} // structure: { "WR 1.2": [ {drumData...} ] }
-        };
-
-        // Cache persistent parameters
-        function saveState() {
-            localStorage.setItem('dc_cable_config', JSON.stringify(state.config));
-            localStorage.setItem('dc_cable_saved_meters', JSON.stringify(state.savedMeters));
-            if (state.selectedTeam) {
-                localStorage.setItem('dc_cable_selected_team', state.selectedTeam);
-            } else {
-                localStorage.removeItem('dc_cable_selected_team');
-            }
-        }
-
-        // Show toast notification
-        function showToast(message, isError = false) {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toast-message');
-            toastMsg.innerText = message;
-            if (isError) {
-                toast.classList.remove('bg-emerald-600');
-                toast.classList.add('bg-red-600');
-            } else {
-                toast.classList.remove('bg-red-600');
-                toast.classList.add('bg-emerald-600');
-            }
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-        }
-
-        // Handle Loader screen
-        function setLoader(show, text = "Synchronizacja danych...") {
-            const loader = document.getElementById('loading-overlay');
-            const loaderTxt = document.getElementById('loading-text');
-            loaderTxt.innerText = text;
-            if (show) {
-                loader.classList.remove('hidden');
-            } else {
-                loader.classList.add('hidden');
-            }
-        }
-
-        // Check if there are active network credentials
-        function updateConnectionBanner() {
-            const banner = document.getElementById('connection-banner');
-            const syncDot = document.getElementById('sync-dot');
-            if (!state.gasUrl) {
-                banner.classList.remove('hidden');
-                syncDot.classList.add('hidden');
-            } else {
-                banner.classList.add('hidden');
-                syncDot.classList.remove('hidden');
-            }
-        }
-
-        // Bidirectional Sync: Pull from Google Sheets
-        async function fetchCloudData() {
-            if (!state.gasUrl) {
-                showToast("Brak URL skryptu Google. Przejdź do ustawień.", true);
-                openSettingsModal();
-                return;
-            }
-            setLoader(true, "Pobieranie danych z arkusza...");
-            try {
-                const response = await fetch(`${state.gasUrl}?action=getData`, {
-                    method: 'GET',
-                    mode: 'cors'
-                });
-                if (!response.ok) throw new Error("Błąd sieci");
-                const result = await response.json();
-                
-                if (result.status === "success") {
-                    // Update configuration
-                    if (result.config) {
-                        state.config = result.config;
-                    }
-                    // Update synced meters database
-                    if (result.meters) {
-                        state.savedMeters = result.meters;
-                    }
-                    saveState();
-                    showToast("Dane zostały pomyślnie zsynchronizowane!");
-                    updateAppLayout();
-                } else {
-                    throw new Error(result.message || "Błąd pobierania");
-                }
-            } catch (err) {
-                console.error(err);
-                showToast("Nie udało się pobrać danych ze skryptu Google. Tryb offline.", true);
-            } finally {
-                setLoader(false);
-            }
-        }
-
-        // Calculations & Aggregation logic
-        function calculateInverterTotal(wrName) {
-            // Sum usage from synced data (saved in Google Sheets)
-            let total = 0;
-            state.savedMeters.forEach(row => {
-                if (row.Falownik_WR === wrName) {
-                    total += parseFloat(row.Zuzycie) || 0;
-                }
-            });
-
-            // Add un-synced local changes for this specific inverter
-            if (state.localFormCache[wrName]) {
-                let localTotal = 0;
-                state.localFormCache[wrName].forEach(row => {
-                    localTotal += parseFloat(row.Zuzycie) || 0;
-                });
-                // If we edited locally, that overrides or is a fresh session for this team
-                return localTotal;
-            }
-
-            return total;
-        }
-
-        function calculateTrafoTotal(trafoName) {
-            let total = 0;
-            const limit = state.config.trafos[trafoName] || 0;
-            const trafoIdNum = trafoName.replace(/\D/g, ""); // extract e.g. "1" from "Trafo 1"
-            for (let i = 1; i <= limit; i++) {
-                const wr = `WR ${trafoIdNum}.${i}`;
-                total += calculateInverterTotal(wr);
-            }
-            return total;
-        }
-
-        function calculateGlobalTotal() {
-            let total = 0;
-            Object.keys(state.config.trafos).forEach(trafo => {
-                total += calculateTrafoTotal(trafo);
-            });
-            return total;
-        }
-
-        // Check if inverter has been locked by other team / or already synchronized
-        function getInverterLockStatus(wrName) {
-            // Find if there is any synced data for this inverter
-            const syncedEntries = state.savedMeters.filter(row => row.Falownik_WR === wrName);
-            if (syncedEntries.length > 0) {
-                // If already completed by another team, lock it!
-                const otherTeamEntry = syncedEntries.find(row => row.Team !== state.selectedTeam);
-                if (otherTeamEntry) {
-                    return { locked: true, reason: `Zablokowane przez: ${otherTeamEntry.Team}` };
-                }
-                return { locked: true, reason: 'Zatwierdzone i zsynchronizowane' };
-            }
-            return { locked: false };
-        }
-
-        // NAVIGATION SYSTEM: Step Renderers
-        function setStep(step) {
-            state.activeStep = step;
-            updateAppLayout();
-        }
-
-        function updateAppLayout() {
-            updateConnectionBanner();
-            
-            // Bottom stats bar control
-            const footer = document.getElementById('bottom-stats-bar');
-            if (state.selectedTeam && state.activeStep !== 'teams') {
-                footer.classList.remove('translate-y-full');
-                document.getElementById('active-team-label').innerText = `ZESPÓŁ: ${state.selectedTeam}`;
-                document.getElementById('active-wr-label').innerText = state.selectedInverter || '-';
-                document.getElementById('total-global-meters').innerText = calculateGlobalTotal().toFixed(2);
-            } else {
-                footer.classList.add('translate-y-full');
-            }
-
-            const appView = document.getElementById('app-view');
-
-            if (state.activeStep === 'teams') {
-                renderTeamsView(appView);
-            } else if (state.activeStep === 'inverters') {
-                renderInvertersView(appView);
-            } else if (state.activeStep === 'monter-form') {
-                renderMonterFormView(appView);
-            }
-        }
-
-        // SCREEN 1: Team Selection
-        function renderTeamsView(container) {
-            let teamsHtml = '';
-            const count = state.config.teamsCount || 2;
-            
-            for (let i = 1; i <= count; i++) {
-                const teamName = `Team ${i}`;
-                const isSelected = state.selectedTeam === teamName;
-                teamsHtml += `
-                    <button onclick="selectTeam('${teamName}')" class="w-full flex items-center justify-between p-5 bg-dark-800 border-2 ${isSelected ? 'border-neon-500 shadow-neon-glow' : 'border-dark-700'} rounded-2xl active:scale-95 transition-all text-left">
-                        <div class="flex items-center space-x-4">
-                            <div class="w-12 h-12 rounded-xl bg-dark-700 flex items-center justify-center text-neon-500 text-xl font-bold">
-                                <i class="fa-solid fa-users"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-white text-base">${teamName}</h4>
-                                <p class="text-xs text-gray-400">Kliknij, aby wejść do panelu</p>
-                            </div>
-                        </div>
-                        <div class="w-8 h-8 rounded-full bg-dark-900 border border-dark-600 flex items-center justify-center text-neon-500">
-                            <i class="fa-solid fa-chevron-right text-xs"></i>
-                        </div>
-                    </button>
-                `;
-            }
-
-            container.innerHTML = `
-                <div class="space-y-6">
-                    <div class="text-center py-4">
-                        <h2 class="text-2xl font-black text-white">Wybierz Zespół Roboczy</h2>
-                        <p class="text-xs text-gray-400 mt-1">Wybierz swój zespół, aby rejestrować kable</p>
-                    </div>
-                    <div class="space-y-3">
-                        ${teamsHtml}
-                    </div>
-                </div>
-            `;
-        }
-
-        function selectTeam(teamName) {
-            state.selectedTeam = teamName;
-            saveState();
-            setStep('inverters');
-        }
-
-        // SCREEN 2: Inverters Dashboard
-        function renderInvertersView(container) {
-            // Trafo Filter pill buttons
-            let filterPills = `
-                <button onclick="setTrafoFilter('Wszystkie')" class="px-4 py-2 rounded-xl text-xs font-bold transition-all ${state.selectedTrafoFilter === 'Wszystkie' ? 'bg-neon-500 text-dark-900 shadow-neon-glow' : 'bg-dark-800 text-gray-300 border border-dark-700'}">
-                    Wszystkie
-                </button>
-            `;
-            Object.keys(state.config.trafos).forEach(trafo => {
-                const isSelected = state.selectedTrafoFilter === trafo;
-                filterPills += `
-                    <button onclick="setTrafoFilter('${trafo}')" class="px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${isSelected ? 'bg-neon-500 text-dark-900 shadow-neon-glow' : 'bg-dark-800 text-gray-300 border border-dark-700'}">
-                        ${trafo}
-                    </button>
-                `;
-            });
-
-            // Generating Inverters cards grid
-            let cardsGrid = '';
-            Object.entries(state.config.trafos).forEach(([trafoName, limit]) => {
-                if (state.selectedTrafoFilter !== 'Wszystkie' && state.selectedTrafoFilter !== trafoName) return;
-
-                const trafoIdNum = trafoName.replace(/\D/g, ""); // "Trafo 1" -> "1"
-                
-                cardsGrid += `
-                    <div class="col-span-2 mt-4 first:mt-0">
-                        <h3 class="text-xs font-black text-neon-500 uppercase tracking-widest flex items-center space-x-2">
-                            <span class="w-1.5 h-3 bg-neon-500 rounded-full"></span>
-                            <span>${trafoName} (Rozdzielnia)</span>
-                        </h3>
-                    </div>
-                `;
-
-                for (let i = 1; i <= limit; i++) {
-                    const wrName = `WR ${trafoIdNum}.${i}`;
-                    const usage = calculateInverterTotal(wrName);
-                    const lockData = getInverterLockStatus(wrName);
-                    
-                    let statusLabel = '';
-                    let cardBg = 'bg-dark-800 border-dark-700';
-                    let actionClick = `selectInverter('${wrName}')`;
-
-                    if (lockData.locked) {
-                        cardBg = 'bg-dark-800/40 border-dark-800/80 opacity-60';
-                        statusLabel = `<span class="text-[9px] bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded-full font-bold flex items-center"><i class="fa-solid fa-lock mr-1"></i> ${lockData.reason}</span>`;
-                        // Allows viewing but prevents edit (handled inside selectInverter)
-                    } else if (usage > 0) {
-                        cardBg = 'bg-dark-800 border-neon-500/50 shadow-sm';
-                        statusLabel = `<span class="text-[9px] bg-neon-500/10 text-neon-500 border border-neon-500/20 px-2 py-0.5 rounded-full font-bold flex items-center"><i class="fa-solid fa-check mr-1"></i> Gotowe do wysyłki</span>`;
-                    } else {
-                        statusLabel = `<span class="text-[9px] bg-dark-700 text-gray-400 px-2 py-0.5 rounded-full font-semibold">Brak danych</span>`;
-                    }
-
-                    cardsGrid += `
-                        <div onclick="${actionClick}" class="col-span-1 p-4 rounded-2xl border ${cardBg} cursor-pointer active:scale-95 transition-all flex flex-col justify-between space-y-3">
-                            <div class="flex items-start justify-between">
-                                <span class="font-extrabold text-white text-sm">${wrName}</span>
-                                <div class="text-xs text-gray-400"><i class="fa-solid fa-plug text-neon-500"></i></div>
-                            </div>
-                            <div>
-                                <p class="text-[10px] text-gray-400 uppercase tracking-wider leading-none">Zużycie:</p>
-                                <p class="text-lg font-black text-white mt-1">${usage.toFixed(1)} <span class="text-[10px] text-neon-500">m</span></p>
-                            </div>
-                            <div class="pt-1 flex items-center justify-between border-t border-dark-700/50">
-                                ${statusLabel}
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-
-            container.innerHTML = `
-                <div class="space-y-4">
-                    <!-- Navigation / Back Button -->
-                    <div class="flex items-center justify-between">
-                        <button onclick="logoutTeam()" class="flex items-center space-x-1.5 text-xs text-gray-400 hover:text-white transition-all bg-dark-800 px-3 py-1.5 rounded-lg border border-dark-700">
-                            <i class="fa-solid fa-arrow-left-long"></i>
-                            <span>Wyloguj</span>
-                        </button>
-                        <span class="text-xs font-bold text-gray-300">ZESPÓŁ: <span class="text-neon-500">${state.selectedTeam}</span></span>
-                    </div>
-
-                    <!-- Horizontal Filters Slider -->
-                    <div class="flex space-x-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-none">
-                        ${filterPills}
-                    </div>
-
-                    <!-- Inverters Grid -->
-                    <div class="grid grid-cols-2 gap-3 pb-8">
-                        ${cardsGrid}
-                    </div>
-                </div>
-            `;
-        }
-
-        function setTrafoFilter(filterValue) {
-            state.selectedTrafoFilter = filterValue;
-            updateAppLayout();
-        }
-
-        function logoutTeam() {
-            state.selectedTeam = null;
-            saveState();
-            setStep('teams');
-        }
-
-        function selectInverter(wrName) {
-            const lockData = getInverterLockStatus(wrName);
-            if (lockData.locked && lockData.reason.includes("Zablokowane")) {
-                showToast(`Ten falownik został już uzupełniony przez inny zespół!`, true);
-                return;
-            }
-
-            state.selectedInverter = wrName;
-            
-            // If we don't have any current forms cache for this inverter, let's load what is in DB or default rows
-            if (!state.localFormCache[wrName]) {
-                const dbEntries = state.savedMeters.filter(row => row.Falownik_WR === wrName);
-                if (dbEntries.length > 0) {
-                    // Populate cache from current synched Google Sheet data
-                    state.localFormCache[wrName] = dbEntries.map(db => ({
-                        dbId: db.ID,
-                        nr: db.Numer_Bębna_Stringu,
-                        totalLen: parseFloat(db.Dlugosc_Bebna) || 0,
-                        start: parseFloat(db.Odczyt_Start) || 0,
-                        end: parseFloat(db.Odczyt_Koniec) || 0,
-                        usage: parseFloat(db.Zuzycie) || 0,
-                        remaining: parseFloat(db.Zapas) || 0
-                    }));
-                } else {
-                    // Initialize with 1 empty row for Drums / or strings count from config
-                    if (state.config.workMode === 'Bębny') {
-                        state.localFormCache[wrName] = [
-                            { nr: "BĘBEN #1", totalLen: 500, start: 0, end: 0, usage: 0, remaining: 0 }
-                        ];
-                    } else {
-                        // String mode: initialize with empty list
-                        state.localFormCache[wrName] = [
-                            { nr: "STRING #1", start: 0, end: 0, usage: 0 }
-                        ];
-                    }
-                }
-            }
-
-            state.unsavedChanges = false;
-            setStep('monter-form');
-        }
-
-        // SCREEN 3: Installer Form View
-        function renderMonterFormView(container) {
-            const wr = state.selectedInverter;
-            const mode = state.config.workMode;
-            const rows = state.localFormCache[wr] || [];
-            
-            let formRowsHtml = '';
-
-            if (mode === 'Bębny') {
-                rows.forEach((row, idx) => {
-                    formRowsHtml += `
-                        <div class="p-4 bg-dark-800 border border-dark-700 rounded-2xl space-y-3 relative">
-                            <!-- Header Row with delete button for extra items -->
-                            <div class="flex justify-between items-center pb-2 border-b border-dark-700/50">
-                                <span class="font-extrabold text-xs text-neon-500 tracking-wider">${row.nr.toUpperCase()}</span>
-                                ${rows.length > 1 ? `
-                                    <button onclick="removeFormRow(${idx})" class="text-red-400 hover:text-red-500 text-xs">
-                                        <i class="fa-solid fa-trash-can mr-1"></i> Usuń bęben
-                                    </button>
-                                ` : ''}
-                            </div>
-                            
-                            <!-- Input Fields Grid -->
-                            <div class="grid grid-cols-3 gap-2">
-                                <div>
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Długość Całk. (M)</label>
-                                    <input type="number" step="any" oninput="updateRowCalc(${idx}, 'totalLen', this.value)" value="${row.totalLen}" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2 py-2.5 text-center text-sm text-white font-extrabold focus:outline-none focus:border-neon-500">
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Start (M)</label>
-                                    <input type="number" step="any" oninput="updateRowCalc(${idx}, 'start', this.value)" value="${row.start}" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2 py-2.5 text-center text-sm text-white font-extrabold focus:outline-none focus:border-neon-500">
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Koniec (M)</label>
-                                    <input type="number" step="any" oninput="updateRowCalc(${idx}, 'end', this.value)" value="${row.end}" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2 py-2.5 text-center text-sm text-white font-extrabold focus:outline-none focus:border-neon-500">
-                                </div>
-                            </div>
-
-                            <!-- Automatic results visualizer -->
-                            <div class="grid grid-cols-2 gap-2 pt-2 text-xs bg-dark-900/50 p-3 rounded-xl">
-                                <div>
-                                    <span class="text-gray-400 text-[10px] uppercase">Zużycie kabla:</span>
-                                    <p class="font-black text-white text-sm mt-0.5"><span id="row-usage-${idx}">${row.usage.toFixed(1)}</span> <span class="text-[10px] text-neon-500">m</span></p>
-                                </div>
-                                <div class="text-right">
-                                    <span class="text-gray-400 text-[10px] uppercase">Zapas na bębnie:</span>
-                                    <p class="font-black text-white text-sm mt-0.5"><span id="row-rem-${idx}">${row.remaining.toFixed(1)}</span> <span class="text-[10px] text-neon-500">m</span></p>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-            } else {
-                // TRYB STRINGI (Uproszczony)
-                rows.forEach((row, idx) => {
-                    formRowsHtml += `
-                        <div class="p-4 bg-dark-800 border border-dark-700 rounded-2xl space-y-3 relative">
-                            <!-- Header Row with delete button for extra items -->
-                            <div class="flex justify-between items-center pb-2 border-b border-dark-700/50">
-                                <span class="font-extrabold text-xs text-neon-500 tracking-wider">${row.nr.toUpperCase()}</span>
-                                ${rows.length > 1 ? `
-                                    <button onclick="removeFormRow(${idx})" class="text-red-400 hover:text-red-500 text-xs">
-                                        <i class="fa-solid fa-trash-can mr-1"></i> Usuń string
-                                    </button>
-                                ` : ''}
-                            </div>
-                            
-                            <!-- Input Fields Grid -->
-                            <div class="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Start (M)</label>
-                                    <input type="number" step="any" oninput="updateRowCalc(${idx}, 'start', this.value)" value="${row.start}" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2 py-2.5 text-center text-sm text-white font-extrabold focus:outline-none focus:border-neon-500">
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Koniec (M)</label>
-                                    <input type="number" step="any" oninput="updateRowCalc(${idx}, 'end', this.value)" value="${row.end}" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2 py-2.5 text-center text-sm text-white font-extrabold focus:outline-none focus:border-neon-500">
-                                </div>
-                            </div>
-
-                            <!-- Automatic results visualizer -->
-                            <div class="pt-1 text-xs bg-dark-900/50 p-3 rounded-xl flex justify-between items-center">
-                                <span class="text-gray-400 text-[10px] uppercase">Zużycie kabla:</span>
-                                <p class="font-black text-white text-base"><span id="row-usage-${idx}">${row.usage.toFixed(1)}</span> <span class="text-[10px] text-neon-500">m</span></p>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-
-            container.innerHTML = `
-                <div class="space-y-4">
-                    <!-- Navigation / Back Button -->
-                    <div class="flex items-center justify-between">
-                        <button onclick="goBackToInverters()" class="flex items-center space-x-1.5 text-xs text-gray-400 hover:text-white transition-all bg-dark-800 px-3 py-1.5 rounded-lg border border-dark-700">
-                            <i class="fa-solid fa-chevron-left"></i>
-                            <span>Powrót</span>
-                        </button>
-                        <span class="text-xs font-bold text-gray-300">FALOWNIK: <span class="text-neon-500">${wr}</span></span>
-                    </div>
-
-                    <!-- Mode Info Badge -->
-                    <div class="p-3 bg-neon-500/10 border border-neon-500/20 rounded-xl flex items-center justify-between text-xs">
-                        <span class="text-gray-300">Aktualny tryb: <span class="text-neon-500 font-extrabold uppercase">${mode}</span></span>
-                        <i class="fa-solid fa-sliders text-neon-500"></i>
-                    </div>
-
-                    <!-- Dynamic form rows container -->
-                    <div class="space-y-4">
-                        ${formRowsHtml}
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="flex flex-col space-y-2 pt-4">
-                        <button onclick="addNewFormRow()" class="w-full py-3 bg-dark-800 border-2 border-dashed border-dark-600 text-gray-300 rounded-2xl hover:border-neon-500 hover:text-white transition-all font-bold text-xs">
-                            <i class="fa-solid fa-plus mr-1"></i> Dodaj kolejny ${mode === 'Bębny' ? 'Bęben' : 'String'}
-                        </button>
-                        
-                        <button onclick="saveAndSendMeters()" class="w-full py-4 bg-neon-500 text-dark-900 font-extrabold rounded-2xl text-sm shadow-neon-glow hover:bg-neon-600 transition-all flex items-center justify-center space-x-2">
-                            <i class="fa-solid fa-paper-plane text-base"></i>
-                            <span>ZAPISZ I WYŚLIJ</span>
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Form live changes update
-        function updateRowCalc(index, field, value) {
-            state.unsavedChanges = true;
-            const rows = state.localFormCache[state.selectedInverter];
-            if (!rows || !rows[index]) return;
-
-            const parsedVal = parseFloat(value) || 0;
-            rows[index][field] = parsedVal;
-
-            // Math logic
-            const absDiff = Math.abs(rows[index].start - rows[index].end);
-            rows[index].usage = absDiff;
-
-            if (state.config.workMode === 'Bębny') {
-                if (rows[index].totalLen === 0) {
-                    rows[index].remaining = 0;
-                } else {
-                    rows[index].remaining = rows[index].totalLen - absDiff;
-                }
-                
-                // Live DOM rendering updates to avoid redrawing input values & resets
-                document.getElementById(`row-usage-${index}`).innerText = absDiff.toFixed(1);
-                document.getElementById(`row-rem-${index}`).innerText = rows[index].remaining.toFixed(1);
-            } else {
-                document.getElementById(`row-usage-${index}`).innerText = absDiff.toFixed(1);
-            }
-        }
-
-        // Row operations
-        function addNewFormRow() {
-            state.unsavedChanges = true;
-            const rows = state.localFormCache[state.selectedInverter];
-            const mode = state.config.workMode;
-            const nextIdx = rows.length + 1;
-
-            if (mode === 'Bębny') {
-                rows.push({
-                    nr: `BĘBEN #${nextIdx}`,
-                    totalLen: 500,
-                    start: 0,
-                    end: 0,
-                    usage: 0,
-                    remaining: 0
-                });
-            } else {
-                rows.push({
-                    nr: `STRING #${nextIdx}`,
-                    start: 0,
-                    end: 0,
-                    usage: 0
-                });
-            }
-            renderMonterFormView(document.getElementById('app-view'));
-        }
-
-        function removeFormRow(idx) {
-            state.unsavedChanges = true;
-            const rows = state.localFormCache[state.selectedInverter];
-            if (rows.length > 1) {
-                rows.splice(idx, 1);
-                // Renumber elements dynamically
-                const mode = state.config.workMode;
-                rows.forEach((row, i) => {
-                    row.nr = mode === 'Bębny' ? `BĘBEN #${i + 1}` : `STRING #${i + 1}`;
-                });
-                renderMonterFormView(document.getElementById('app-view'));
-            }
-        }
-
-        // Handle unsaved modifications modal warnings
-        function goBackToInverters() {
-            if (state.unsavedChanges) {
-                // Display custom warning modal
-                const modal = document.getElementById('warning-modal');
-                modal.classList.remove('hidden');
-                
-                document.getElementById('warning-stay-btn').onclick = function() {
-                    modal.classList.add('hidden');
-                    saveAndSendMeters();
-                };
-
-                document.getElementById('warning-discard-btn').onclick = function() {
-                    modal.classList.add('hidden');
-                    // Reset cache for this inverter to cancel inputs
-                    delete state.localFormCache[state.selectedInverter];
-                    state.unsavedChanges = false;
-                    setStep('inverters');
-                };
-            } else {
-                setStep('inverters');
-            }
-        }
-
-        // Upload & Save to Google Sheets
-        async function saveAndSendMeters() {
-            if (!state.gasUrl) {
-                showToast("Brak URL skryptu Google. Przejdź do ustawień.", true);
-                openSettingsModal();
-                return;
-            }
-
-            const wr = state.selectedInverter;
-            const rows = state.localFormCache[wr];
-            if (!rows) return;
-
-            setLoader(true, "Wysyłanie pomiarów...");
-
-            // Construct rows formatted for Google Sheets schema:
-            // ID | Data_Wpisu | Team | Trafostacja | Falownik_WR | Numer_Bębna_Stringu | Dlugosc_Bebna | Odczyt_Start | Odczyt_Koniec | Zuzycie | Zapas
-            const entriesToSend = rows.map(r => {
-                const trafoName = `Trafo ${wr.split(' ')[1].split('.')[0]}`;
-                return {
-                    ID: r.dbId || `ID-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-                    Data_Wpisu: new Date().toISOString(),
-                    Team: state.selectedTeam,
-                    Trafostacja: trafoName,
-                    Falownik_WR: wr,
-                    Numer_Bębna_Stringu: r.nr,
-                    Dlugosc_Bebna: r.totalLen || 0,
-                    Odczyt_Start: r.start,
-                    Odczyt_Koniec: r.end,
-                    Zuzycie: r.usage,
-                    Zapas: r.remaining || 0
-                };
-            });
-
-            try {
-                const response = await fetch(state.gasUrl, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: {
-                        'Content-Type': 'text/plain;charset=utf-8', // Bypass preflight standard CORS
-                    },
-                    body: JSON.stringify({
-                        action: 'saveMeters',
-                        selectedInverter: wr,
-                        data: entriesToSend
-                    })
-                });
-
-                if (!response.ok) throw new Error("Błąd przesyłania danych.");
-                const result = await response.json();
-
-                if (result.status === "success") {
-                    showToast("Pomiary zostały zapisane w chmurze!");
-                    state.unsavedChanges = false;
-                    // Trigger refresh to update the entire memory state
-                    await fetchCloudData();
-                    setStep('inverters');
-                } else {
-                    throw new Error(result.message || "Błąd zapisu");
-                }
-            } catch (err) {
-                console.error(err);
-                showToast("Błąd wysyłania. Dane zapisano tymczasowo lokalnie.", true);
-                // Keep local cache offline, allows going back and re-trying later
-                state.unsavedChanges = false;
-                setStep('inverters');
-            } finally {
-                setLoader(false);
-            }
-        }
-
-        // SETTINGS & CONFIG MODAL FUNCTIONS
-        function openSettingsModal() {
-            const modal = document.getElementById('settings-modal');
-            modal.classList.remove('hidden');
-            setTimeout(() => modal.classList.add('opacity-100'), 10);
-
-            // Populate current values
-            document.getElementById('setting-gas-url').value = state.gasUrl;
-            document.getElementById('setting-work-mode').value = state.config.workMode;
-            document.getElementById('setting-teams-count').value = state.config.teamsCount;
-
-            // Render Trafo inputs mapping
-            renderTrafosMappingInputs();
-        }
-
-        function closeSettingsModal() {
-            const modal = document.getElementById('settings-modal');
-            modal.classList.remove('opacity-100');
-            setTimeout(() => modal.classList.add('hidden'), 300);
-        }
-
-        function renderTrafosMappingInputs() {
-            const container = document.getElementById('trafos-mapping-inputs');
-            container.innerHTML = '';
-            
-            // Generate input per Trafo (we can add up to 4 easily in UI)
-            const trafoCount = Object.keys(state.config.trafos).length;
-            
-            Object.entries(state.config.trafos).forEach(([trafoName, limit], index) => {
-                container.innerHTML += `
-                    <div>
-                        <label class="block text-[10px] text-gray-400 uppercase">${trafoName}</label>
-                        <input type="number" id="setting-trafo-${index + 1}" min="1" max="24" value="${limit}" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2 py-1.5 text-center text-xs text-white font-bold focus:outline-none focus:border-neon-500">
-                    </div>
-                `;
-            });
-        }
-
-        async function saveLocalSettings() {
-            const gasUrlInput = document.getElementById('setting-gas-url').value.trim();
-            const workModeInput = document.getElementById('setting-work-mode').value;
-            const teamsCountInput = parseInt(document.getElementById('setting-teams-count').value) || 2;
-
-            // Update state
-            state.gasUrl = gasUrlInput;
-            localStorage.setItem('dc_cable_gas_url', gasUrlInput);
-
-            // Parse trafo counts dynamically
-            const trafos = {};
-            const trafo1Limit = parseInt(document.getElementById('setting-trafo-1')?.value) || 12;
-            const trafo2Limit = parseInt(document.getElementById('setting-trafo-2')?.value) || 12;
-            
-            trafos["Trafo 1"] = trafo1Limit;
-            trafos["Trafo 2"] = trafo2Limit;
-
-            state.config = {
-                workMode: workModeInput,
-                teamsCount: teamsCountInput,
-                trafos: trafos,
-                stringsCount: 12 // Default standard strings count limit
-            };
-
-            saveState();
-
-            // Try sending the settings update to Google Apps Script configuration if URL exists
-            if (state.gasUrl) {
-                setLoader(true, "Zapisywanie w chmurze...");
-                try {
-                    const response = await fetch(state.gasUrl, {
-                        method: 'POST',
-                        mode: 'cors',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({
-                            action: 'saveConfig',
-                            config: state.config
-                        })
-                    });
-                    if (!response.ok) throw new Error("Błąd zapisu serwera.");
-                    showToast("Ustawienia zapisane lokalnie i w chmurze!");
-                } catch (e) {
-                    showToast("Zapisano tylko lokalnie (Brak połączenia z chmurą).", true);
-                } finally {
-                    setLoader(false);
-                }
-            } else {
-                showToast("Ustawienia zapisane lokalnie.");
-            }
-
-            closeSettingsModal();
-            updateAppLayout();
-        }
-
-        // FACTORY RESET HANDLERS
-        function confirmFactoryReset() {
-            closeSettingsModal();
-            document.getElementById('reset-modal').classList.remove('hidden');
-        }
-
-        function closeResetModal() {
-            document.getElementById('reset-modal').classList.add('hidden');
-        }
-
-        async function executeFactoryReset() {
-            closeResetModal();
-            setLoader(true, "Przywracanie ustawień fabrycznych...");
-
-            if (state.gasUrl) {
-                try {
-                    const response = await fetch(state.gasUrl, {
-                        method: 'POST',
-                        mode: 'cors',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({
-                            action: 'factoryReset'
-                        })
-                    });
-                    if (!response.ok) throw new Error("Reset serwera nie powiódł się.");
-                } catch (e) {
-                    console.error("Factory reset failed over cloud:", e);
-                    showToast("Brak połączenia z chmurą. Wykonano lokalny reset.", true);
-                }
-            }
-
-            // Restore defaults locally
-            localStorage.clear();
-            state = {
-                gasUrl: DEFAULTS.gasUrl,
-                config: DEFAULTS.config,
-                savedMeters: [],
-                activeStep: 'teams',
-                selectedTeam: null,
-                selectedTrafoFilter: 'Wszystkie',
-                selectedInverter: null,
-                unsavedChanges: false,
-                localFormCache: {}
-            };
-            
-            saveState();
-            showToast("Przywrócono konfigurację fabryczną systemu.");
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
-        }
-
-        // INITIALIZATION
-        window.onload = function() {
-            // First load from memory
-            updateAppLayout();
-            // Automatically try refreshing cloud database
-            if (state.gasUrl) {
-                fetchCloudData();
-            } else {
-                showToast("Aplikacja gotowa do pracy offline. Skonfiguruj URL API.");
-            }
-        };
-    </script>
+        // Remove old entries of this inverter and inject newly updated
+        state.meters = state.meters.filter(m => m.Falownik_WR !== state.selectedInverter);
+        state.meters = state.meters.concat(mappedPayload);
+
+        showLoading(false);
+        state.selectedInverter = "";
+        renderApp();
+        showStatusMessage("Pomiary przesłane i zabezpieczone w chmurze!", "success");
+      })
+      .catch(error => {
+        showLoading(false);
+        console.error("Post error:", error);
+        showStatusMessage("Błąd zapisu danych w chmurze. Sprawdź połączenie sieciowe.", "error");
+      });
+    }
+
+    // Execute Google Sheets remote factory reset
+    function triggerFactoryReset() {
+      if (!state.apiUrl) return;
+
+      showLoading(true, "Inicjowanie pełnego resetu fabrycznego...");
+
+      const body = {
+        action: "factoryReset"
+      };
+
+      fetch(state.apiUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      })
+      .then(() => {
+        showLoading(false);
+        closeSettingsModal();
+        state.selectedTeam = "";
+        state.selectedInverter = "";
+        state.meters = [];
+        state.hasUnsavedChanges = false;
+        fetchData();
+        showStatusMessage("Przywrócono konfigurację fabryczną Arkusza!", "success");
+      })
+      .catch(error => {
+        showLoading(false);
+        console.error("Reset error:", error);
+        showStatusMessage("Błąd podczas resetowania danych.", "error");
+      });
+    }
+
+    // =======================================================
+    // SYSTEM SETTINGS & UTILITY ENGINE
+    // =======================================================
+    function openSettingsModal() {
+      document.getElementById('input-api-url').value = state.apiUrl;
+      document.getElementById('settings-msg').className = "hidden text-[11px] p-2 rounded-lg";
+      document.getElementById('settings-modal').classList.remove('hidden');
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settings-modal').classList.add('hidden');
+    }
+
+    function saveApiUrl() {
+      const inputVal = document.getElementById('input-api-url').value.trim();
+      const msg = document.getElementById('settings-msg');
+
+      if (!inputVal) {
+        msg.className = "text-[11px] p-2 rounded-lg bg-red-950/50 text-red-300 border border-red-500/20";
+        msg.innerText = "URL skryptu nie może być pusty!";
+        msg.classList.remove('hidden');
+        return;
+      }
+
+      state.apiUrl = inputVal;
+      localStorage.setItem('pv_cable_tracker_api_url', inputVal);
+
+      msg.className = "text-[11px] p-2 rounded-lg bg-emerald-950/50 text-emerald-300 border border-emerald-500/20";
+      msg.innerText = "Adres API został pomyślnie zaktualizowany.";
+      msg.classList.remove('hidden');
+
+      setTimeout(() => {
+        closeSettingsModal();
+        fetchData();
+      }, 800);
+    }
+
+    // Custom non-blocking visual snackbars (alternative to alerts)
+    function showStatusMessage(text, type = "success") {
+      const banner = document.createElement('div');
+      banner.className = `fixed bottom-4 left-4 right-4 md:left-auto md:max-w-md md:right-4 z-50 p-4 rounded-xl border flex items-center gap-3 shadow-xl transition-all duration-300 fade-in ${
+        type === 'success' ? 'bg-zinc-900 border-emerald-500 text-emerald-400' : 'bg-zinc-900 border-red-500 text-red-400'
+      }`;
+
+      const icon = type === 'success' 
+        ? `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`
+        : `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+
+      banner.innerHTML = `
+        <div class="shrink-0">${icon}</div>
+        <p class="text-xs font-bold">${text}</p>
+      `;
+
+      document.body.appendChild(banner);
+      setTimeout(() => {
+        banner.style.opacity = '0';
+        banner.style.transform = 'translateY(20px)';
+        setTimeout(() => banner.remove(), 300);
+      }, 4000);
+    }
+
+    // Modal warnings controls
+    function openWarningModal() {
+      document.getElementById('custom-warning-modal').classList.remove('hidden');
+    }
+
+    function closeWarningModal() {
+      document.getElementById('custom-warning-modal').classList.add('hidden');
+    }
+
+    function confirmAbandonChanges() {
+      closeWarningModal();
+      state.hasUnsavedChanges = false;
+      state.selectedInverter = "";
+      renderApp();
+    }
+
+    // UUID utility generator
+    function generateUUID() {
+      return 'rec-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+  </script>
 </body>
 </html>
