@@ -3,23 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ewidencja Zużycia Kabli PV Pro - Cloud Sync</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Fotowoltaika - DC Cable Tracker</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <!-- PWA Web Manifest -->
-    <link rel="manifest" href='data:application/manifest+json,{"name":"Ewidencja Kabli PV Pro","short_name":"Cable-PV Pro","start_url":"index.html","display":"standalone","background_color":"#09090b","theme_color":"#09090b","description":"System Ewidencji Zuzycia Kabli PV Pro Cloud Sync","orientation":"portrait","icons":[{"src":"https://placehold.co/192x192/09090b/a3e635?text=PV","sizes":"192x192","type":"image/png","purpose":"any maskable"},{"src":"https://placehold.co/512x512/09090b/a3e635?text=PV+PRO","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}' />
-    
-    <!-- Metatagi iOS/Android Standalone Mode -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Cable-PV Pro">
-    <meta name="theme-color" content="#09090b">
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -29,1378 +19,1063 @@
                         sans: ['Inter', 'sans-serif'],
                     },
                     colors: {
-                        industrial: {
-                            black: '#09090b',
-                            zinc: '#18181b',
-                            neon: '#a3e635', // Lime-400
-                            neonHover: '#84cc16', // Lime-500
-                            darkNeon: '#3f6212', // Lime-800
+                        neon: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            glow: '#10b981'
+                        },
+                        dark: {
+                            900: '#090d16',
+                            800: '#111827',
+                            700: '#1f2937',
+                            600: '#374151'
                         }
+                    },
+                    boxShadow: {
+                        'neon-glow': '0 0 15px rgba(34, 197, 94, 0.4)',
+                        'neon-glow-lg': '0 0 25px rgba(34, 197, 94, 0.6)',
+                        'card': '0 4px 20px rgba(0, 0, 0, 0.4)'
                     }
                 }
             }
         }
     </script>
     <style>
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
-        input[type=number] {
-            -moz-appearance: textfield;
-        }
+        /* Custom scrollbar */
         ::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
+            width: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #09090b;
+            background: #090d16;
         }
         ::-webkit-scrollbar-thumb {
-            background: #3f3f3f;
-            border-radius: 4px;
+            background: #1f2937;
+            border-radius: 3px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #a3e635;
-        }
-        [v-cloak] {
-            display: none !important;
+            background: #22c55e;
         }
     </style>
 </head>
-<body class="bg-zinc-950 text-zinc-100 font-sans h-full flex flex-col antialiased selection:bg-lime-400 selection:text-zinc-950">
+<body class="bg-dark-900 text-slate-100 min-h-full flex flex-col justify-between">
 
-    <div id="app" class="flex flex-col min-h-screen max-w-md mx-auto w-full bg-zinc-900 shadow-2xl relative border-x border-zinc-800" v-cloak>
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-40 bg-dark-800/95 border-b border-dark-700 backdrop-blur-md px-4 py-3 shadow-md">
+        <div class="max-w-md mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-lg bg-neon-500 flex items-center justify-center text-dark-900 shadow-neon-glow">
+                    <i class="fa-solid fa-bolt text-lg font-black"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-sm tracking-wide text-white">DC-CABLE <span class="text-neon-500">TRACKER</span></h1>
+                    <p class="text-[10px] text-gray-400 font-medium uppercase tracking-widest leading-none">PV Farm Manager</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <!-- Sync Status Badge & Button -->
+                <button id="sync-btn" onclick="fetchCloudData()" class="p-2 rounded-lg bg-dark-700 text-slate-300 hover:bg-dark-600 transition-all flex items-center justify-center relative">
+                    <i id="sync-icon" class="fa-solid fa-cloud-arrow-down text-base"></i>
+                    <span id="sync-dot" class="absolute top-1 right-1 flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-500 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-neon-500"></span>
+                    </span>
+                </button>
+                <!-- Settings Button -->
+                <button onclick="openSettingsModal()" class="p-2 rounded-lg bg-dark-700 text-slate-300 hover:bg-dark-600 transition-all">
+                    <i class="fa-solid fa-gears text-base"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Scrollable Area -->
+    <main class="flex-grow max-w-md w-full mx-auto px-4 py-6 pb-24 overflow-y-auto">
         
-        <!-- SCREEN ŁADOWANIA POCZĄTKOWEGO (GET FETCH) -->
-        <transition name="fade">
-            <div v-if="isLoading" class="fixed inset-0 z-50 bg-zinc-950 flex flex-col items-center justify-center p-6 text-center">
-                <div class="relative w-20 h-20 mb-6">
-                    <div class="absolute inset-0 rounded-full border-4 border-zinc-800"></div>
-                    <div class="absolute inset-0 rounded-full border-4 border-t-lime-400 animate-spin"></div>
-                </div>
-                <h3 class="text-sm font-black uppercase tracking-widest text-lime-400 animate-pulse">Łączenie z bazą farmy...</h3>
-                <p class="text-xs text-zinc-500 max-w-xs mt-2 leading-relaxed">Pobieranie aktualnej konfiguracji projektu oraz bazy wszystkich wpisów na żywo z chmury...</p>
-                
-                <!-- Przycisk awaryjny offline, jeśli ładowanie trwa za długo -->
-                <button 
-                    v-if="showOfflineFallbackBtn"
-                    @click="useOfflineBackup"
-                    class="mt-8 px-4 py-2.5 bg-zinc-900 border border-zinc-800 hover:border-lime-400 text-zinc-400 hover:text-lime-400 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all duration-300">
-                    Otwórz z pamięci telefonu (Tryb Offline)
-                </button>
+        <!-- API Status Notification Banner -->
+        <div id="connection-banner" class="hidden mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs flex items-center space-x-3">
+            <i class="fa-solid fa-circle-exclamation text-lg flex-shrink-0 animate-pulse"></i>
+            <div>
+                <span class="font-bold">Tryb Offline / Błąd połączenia.</span> Korzystasz z lokalnej pamięci podręcznej. Skonfiguruj poprawny URL skryptu w ustawieniach.
             </div>
-        </transition>
+        </div>
 
-        <!-- NAGŁÓWEK APLIKACJI -->
-        <header class="sticky top-0 z-40 bg-zinc-950/95 backdrop-blur border-b border-zinc-800 px-3 py-3 flex flex-col space-y-2 shadow-lg">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <div class="bg-lime-400 text-zinc-950 p-1.5 rounded-lg font-black flex items-center justify-center shadow-lg shadow-lime-400/20">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="text-xs font-black tracking-widest uppercase text-zinc-100 leading-none">CABLE-PV PRO</h1>
-                        <span class="text-[9px] text-lime-400 font-extrabold tracking-widest uppercase flex items-center gap-1">
-                            <span>Cloud Multi-User</span>
-                            <span class="h-1.5 w-1.5 rounded-full bg-lime-400 animate-pulse"></span>
-                        </span>
-                    </div>
-                </div>
+        <!-- APP CONTENT ROOT -->
+        <div id="app-view">
+            <!-- Dynamic content will be injected here by JS -->
+        </div>
 
-                <div class="flex items-center space-x-1.5">
-                    <!-- Globalny Tryb Pracy Badge -->
-                    <span class="px-1.5 py-0.5 text-[8px] font-black rounded uppercase tracking-wider bg-zinc-800 text-zinc-300 border border-zinc-700">
-                        {{ globalWorkMode === 'drums' ? 'Bębny 📦' : 'Stringi ⚡' }}
-                    </span>
-                    <!-- Status online/offline -->
-                    <span :class="isOnline ? 'bg-lime-400/20 text-lime-400 border border-lime-400/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'" 
-                          class="px-1.5 py-0.5 text-[8px] font-black rounded uppercase tracking-wider transition-colors duration-300">
-                        {{ isOnline ? 'On' : 'Off' }}
-                    </span>
+    </main>
 
-                    <!-- PRZYCISK ODŚWIEŻANIA NA ŻYWO (Pulsujący lekko) -->
-                    <button 
-                        @click="fetchCloudData"
-                        :disabled="isFetchingUpdate"
-                        title="Odśwież stan sieci"
-                        class="flex items-center space-x-1 p-1 px-2 bg-zinc-900 hover:bg-lime-400/20 text-lime-400 border border-zinc-800 hover:border-lime-400/40 rounded-lg transition-all duration-200 active:scale-95 disabled:opacity-50">
-                        <svg :class="{ 'animate-spin': isFetchingUpdate }" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 15H19" />
-                        </svg>
-                        <span class="text-[8px] font-black tracking-wider uppercase hidden sm:inline">Odśwież</span>
-                    </button>
-
-                    <!-- Minimalistyczny przycisk CSV -->
-                    <button 
-                        @click="exportToCSV"
-                        title="Eksportuj kopię lokalną CSV"
-                        class="p-1.5 bg-zinc-900 hover:bg-lime-400 text-zinc-400 hover:text-zinc-950 border border-zinc-800 hover:border-lime-400 rounded-lg transition-all duration-200"
-                        aria-label="Pobierz plik CSV">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                    </button>
+    <!-- Floating Bottom Stats Bar (Visible when team selected) -->
+    <footer id="bottom-stats-bar" class="fixed bottom-0 left-0 right-0 bg-dark-800/90 border-t border-dark-700 backdrop-blur-md py-3 px-4 shadow-lg z-30 transition-transform duration-300 transform translate-y-full">
+        <div class="max-w-md mx-auto flex items-center justify-between">
+            <div>
+                <p class="text-[10px] text-gray-400 uppercase tracking-widest">Suma całego projektu</p>
+                <p class="text-xl font-black text-white"><span id="total-global-meters">0.00</span> <span class="text-neon-500 text-xs">m</span></p>
+            </div>
+            <div class="text-right flex items-center space-x-4">
+                <div>
+                    <p id="active-team-label" class="text-[10px] text-neon-500 font-bold uppercase tracking-widest">ZESPÓŁ: -</p>
+                    <p class="text-xs text-gray-400">Wybrany falownik: <span id="active-wr-label" class="text-white font-bold">-</span></p>
                 </div>
             </div>
+        </div>
+    </footer>
 
-            <!-- Przełącznik widoków -->
-            <div class="grid grid-cols-3 gap-1 bg-zinc-900 rounded-xl p-1 border border-zinc-800">
-                <button 
-                    @click="safeSetView('user')" 
-                    :class="currentView === 'user' ? 'bg-lime-400 text-zinc-950 font-black shadow-md shadow-lime-400/10' : 'text-zinc-400 hover:text-zinc-200'"
-                    class="py-2.5 text-[11px] font-bold rounded-lg transition-all duration-200 flex items-center justify-center space-x-1.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <span>Monter</span>
-                </button>
-                <button 
-                    @click="safeSetView('live')" 
-                    :class="currentView === 'live' ? 'bg-lime-400 text-zinc-950 font-black shadow-md shadow-lime-400/10' : 'text-zinc-400 hover:text-zinc-200'"
-                    class="py-2.5 text-[11px] font-bold rounded-lg transition-all duration-200 flex items-center justify-center space-x-1.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    <span>Podgląd Live</span>
-                </button>
-                <button 
-                    @click="safeSetView('admin')" 
-                    :class="currentView === 'admin' ? 'bg-lime-400 text-zinc-950 font-black shadow-md shadow-lime-400/10' : 'text-zinc-400 hover:text-zinc-200'"
-                    class="py-2.5 text-[11px] font-bold rounded-lg transition-all duration-200 flex items-center justify-center space-x-1.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    </svg>
-                    <span>Projekt</span>
-                </button>
+    <!-- Modal: Settings & Config -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-opacity duration-300 opacity-0">
+        <div class="bg-dark-800 border border-dark-700 w-full max-w-sm rounded-2xl overflow-hidden shadow-neon-glow p-5 flex flex-col space-y-4">
+            <div class="flex justify-between items-center border-b border-dark-700 pb-3">
+                <h3 class="font-bold text-lg text-white"><i class="fa-solid fa-gears text-neon-500 mr-2"></i>Konfiguracja Systemu</h3>
+                <button onclick="closeSettingsModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-        </header>
-
-        <!-- PANEL STRONY / KONTENER GŁÓWNY -->
-        <main class="flex-1 overflow-y-auto px-4 py-3 pb-20">
-
-            <!-- ================= WIDOK PROJEKTU (ADMIN) ================= -->
-            <div v-if="currentView === 'admin'" class="space-y-4">
-                <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
-                    <h2 class="text-xs font-black text-zinc-100 flex items-center space-x-2">
-                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-lime-400"></span>
-                        <span>Konfiguracja Projektu w Chmurze</span>
-                    </h2>
+            <div class="space-y-3 text-sm">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Google Web App URL</label>
+                    <input type="text" id="setting-gas-url" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-neon-500 text-xs" placeholder="https://script.google.com/macros/s/.../exec">
                 </div>
-
-                <div class="bg-zinc-950 border border-lime-400/20 rounded-2xl p-4 space-y-3">
-                    <h3 class="text-[11px] font-black uppercase tracking-wider text-lime-400 flex items-center gap-1.5">
-                        <span>📊 Globalny status systemu</span>
-                    </h3>
-                    <p class="text-[10px] text-zinc-400 leading-relaxed">
-                        Ta aplikacja jest zsynchronizowana z Twoim arkuszem Google w czasie rzeczywistym. 
-                        Wszelkie modyfikacje struktury (dodawanie/usuwanie teamów, trafostacji, inwerterów oraz zmiany trybu pracy) wykonujesz 
-                        teraz <strong>bezpośrednio w pliku Google Sheets w dedykowanej zakładce "Konfiguracja"</strong>.
-                    </p>
-                    
-                    <div class="bg-zinc-900 rounded-xl p-3 border border-zinc-850 space-y-2 text-[10px]">
-                        <div class="flex justify-between">
-                            <span class="text-zinc-500 font-bold">Tryb roboczy chmury:</span>
-                            <span class="text-lime-400 font-black uppercase">{{ globalWorkMode === 'drums' ? 'BĘBNY' : 'STRINGI' }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-zinc-500 font-bold">Liczba Zespołów (Teams):</span>
-                            <span class="text-zinc-300 font-bold">{{ teams.length }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-zinc-500 font-bold">Skonfigurowane Trafostacje:</span>
-                            <span class="text-zinc-300 font-bold">{{ trafos.length }}</span>
-                        </div>
-                        <div v-if="globalWorkMode === 'strings'" class="flex justify-between">
-                            <span class="text-zinc-500 font-bold">Stringów na Falownik:</span>
-                            <span class="text-zinc-300 font-bold">{{ stringsCountPerInverter }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- UDOSTĘPNIANIE LINKU -->
-                <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 space-y-3">
-                    <h3 class="text-[10px] font-black uppercase tracking-wider text-zinc-300">Udostępnianie aplikacji</h3>
-                    <p class="text-[10px] text-zinc-400 leading-relaxed">
-                        Wygeneruj zakodowany link, aby inni monterzy mogli błyskawicznie uruchomić ten sam projekt PV bezpośrednio w swoich telefonach.
-                    </p>
-                    <button 
-                        @click="generateShareLink" 
-                        class="w-full bg-lime-400 hover:bg-lime-500 active:scale-95 text-zinc-950 font-black py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center space-x-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.684 10.742l1.353-.677A2 2 0 1113.84 12h-2.122m0-5h2.122a2 2 0 11-.707 3.828l-1.353-.677M15 21H3a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2v14a2 2 0 01-2 2z" />
-                        </svg>
-                        <span>Kopiuj link instalacyjny (WhatsApp)</span>
-                    </button>
-                </div>
-
-                <!-- STREFA INTEGRACJI URL (Dla łatwego wdrożenia własnych arkuszy) -->
-                <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 space-y-2">
-                    <h3 class="text-[10px] font-black uppercase tracking-wider text-zinc-300">Adres iFrame Podglądu</h3>
-                    <input 
-                        v-model="googleSheetEmbedUrl" 
-                        type="url" 
-                        placeholder="Link osadzenia iFrame"
-                        class="w-full bg-zinc-900 border border-zinc-850 rounded-xl px-3 py-2 text-[10px] text-zinc-200 focus:outline-none focus:border-lime-400"
-                        @change="saveSettings">
-                    <span class="text-[8px] text-zinc-500 block">Wklej adres z menu Plik -> Udostępnij -> Opublikuj w sieci -> Osadź w Google Sheets.</span>
-                </div>
-            </div>
-
-            <!-- ================= WIDOK PODGLĄDU LIVE (Dla Szefa) ================= -->
-            <div v-if="currentView === 'live'" class="space-y-3 h-full flex flex-col">
-                <div class="flex items-center justify-between border-b border-zinc-800 pb-1">
-                    <h2 class="text-xs font-black text-zinc-100 flex items-center space-x-2">
-                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-lime-400 animate-pulse"></span>
-                        <span>Monitorowanie Prac Live</span>
-                    </h2>
-                </div>
-
-                <div v-if="!googleSheetEmbedUrl" class="text-center py-10 px-4 bg-zinc-950 rounded-2xl border border-zinc-800 space-y-3">
-                    <div class="bg-lime-400/10 text-lime-400 p-3 rounded-full w-12 h-12 flex items-center justify-center mx-auto border border-lime-400/20">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                    </div>
-                    <p class="text-[11px] text-zinc-400 max-w-xs mx-auto">
-                        Wprowadź adres osadzenia iFrame w zakładce <strong class="text-lime-400">Projekt</strong>, aby kontrolować pełne dane w jednym miejscu.
-                    </p>
-                </div>
-
-                <div v-else class="w-full flex-1 min-h-[440px] bg-zinc-950 rounded-2xl border border-zinc-800 overflow-hidden relative">
-                    <iframe 
-                        :src="googleSheetEmbedUrl" 
-                        class="w-full h-full min-h-[440px] border-0 bg-zinc-950"
-                        allowfullscreen>
-                    </iframe>
-                </div>
-            </div>
-
-            <!-- ================= WIDOK MONTERA (Użytkownika) ================= -->
-            <div v-if="currentView === 'user'" class="space-y-3">
-                
-                <!-- Krok 1: Wybór Teamu -->
-                <div v-if="!selectedTeamId" class="space-y-3">
-                    <div class="bg-gradient-to-r from-lime-400/10 to-lime-400/0 border-l-4 border-lime-400 p-2.5 rounded-r-xl">
-                        <h4 class="text-[9px] font-black text-lime-400 uppercase tracking-widest leading-none">KROK 1 Z 3</h4>
-                        <p class="text-xs font-bold text-zinc-200 mt-0.5">Wybierz swój zespół roboczy</p>
-                    </div>
-
-                    <div v-if="teams.length === 0" class="text-center py-10 px-4 bg-zinc-950 rounded-2xl border border-zinc-800 space-y-2">
-                        <p class="text-zinc-500 text-xs">Brak dostępnych zespołów w konfiguracji chmury.</p>
-                        <button @click="fetchCloudData" class="bg-lime-400 text-zinc-950 text-xs font-black px-4 py-2 rounded-xl">Odśwież połączenie z chmurą</button>
-                    </div>
-
-                    <div class="grid grid-cols-1 gap-2">
-                        <button 
-                            v-for="team in teams" 
-                            :key="team.id"
-                            @click="selectTeam(team.id)"
-                            class="w-full text-left bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 hover:border-lime-400/50 p-3.5 rounded-xl transition flex items-center justify-between group">
-                            <div>
-                                <span class="block text-xs font-black text-zinc-200 group-hover:text-lime-400 transition">{{ team.name }}</span>
-                            </div>
-                            <div class="bg-zinc-900 text-zinc-500 group-hover:bg-lime-400 group-hover:text-zinc-950 p-1 rounded-lg transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Krok 2: Wybór Falownika WR + Filtrowanie po Trafostacji -->
-                <div v-else-if="selectedTeamId && !selectedInverterId" class="space-y-3">
-                    <button 
-                        @click="safeSetTeamId(null)" 
-                        class="flex items-center space-x-1 text-zinc-500 hover:text-lime-400 text-[9px] font-black uppercase transition py-0.5">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-                        </svg>
-                        <span>Cofnij do wyboru Teamu</span>
-                    </button>
-
-                    <div class="bg-gradient-to-r from-lime-400/10 to-lime-400/0 border-l-4 border-lime-400 p-2.5 rounded-r-xl">
-                        <span class="text-[8px] text-zinc-400 uppercase tracking-widest font-black leading-none">{{ getTeamName(selectedTeamId) }}</span>
-                        <h4 class="text-[9px] font-black text-lime-400 uppercase tracking-widest mt-0.5">KROK 2 Z 3</h4>
-                        <p class="text-xs font-bold text-zinc-200 mt-0.5">Wybierz Inwerter (WR)</p>
-                    </div>
-
-                    <!-- WYBÓR FILTRA TRAFOSTACJI -->
-                    <div class="space-y-1">
-                        <label class="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Filtruj według Trafostacji:</label>
-                        <div class="flex overflow-x-auto pb-1 gap-1.5 scrollbar-thin">
-                            <button 
-                                @click="selectedTrafoFilter = 'all'"
-                                :class="selectedTrafoFilter === 'all' ? 'bg-lime-400 text-zinc-950 font-black border-lime-400' : 'bg-zinc-950 text-zinc-400 border-zinc-850 hover:border-zinc-700'"
-                                class="px-2.5 py-1 text-[10px] rounded-lg border uppercase whitespace-nowrap transition">
-                                Wszystkie
-                            </button>
-                            <button 
-                                v-for="trafo in trafos" 
-                                :key="trafo.id"
-                                @click="selectedTrafoFilter = trafo.trafoNo"
-                                :class="selectedTrafoFilter === trafo.trafoNo ? 'bg-lime-400 text-zinc-950 font-black border-lime-400' : 'bg-zinc-950 text-zinc-400 border-zinc-850 hover:border-zinc-700'"
-                                class="px-2.5 py-1 text-[10px] rounded-lg border uppercase whitespace-nowrap transition">
-                                Trafo {{ trafo.trafoNo }}
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Lista WRs po filtrze -->
-                    <div class="grid grid-cols-2 gap-2 max-h-[360px] overflow-y-auto pr-1">
-                        <button 
-                            v-for="inv in filteredInverters" 
-                            :key="inv.id"
-                            @click="selectInverter(inv.id)"
-                            class="text-left bg-zinc-950 hover:bg-zinc-900 border border-zinc-850 hover:border-lime-400/50 p-3 rounded-xl transition flex flex-col justify-between group h-20">
-                            <div class="flex justify-between items-start w-full">
-                                <span class="text-xs font-black text-zinc-200 group-hover:text-lime-400 transition leading-tight">{{ inv.name }}</span>
-                                <span class="text-[8px] bg-zinc-900 px-1 py-0.5 text-zinc-500 font-bold rounded">Trafo {{ inv.trafoNo }}</span>
-                            </div>
-                            <div class="w-full flex justify-between items-baseline mt-1.5">
-                                <span class="text-[8px] text-zinc-500 font-bold">Pomiary:</span>
-                                <span class="text-[10px] font-black text-lime-400">
-                                    {{ calculateInverterTotalUsed(inv.id) }} m
-                                </span>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Krok 3: Zarządzanie Danymi (BĘBNY vs STRINGI) -->
-                <div v-else-if="selectedTeamId && selectedInverterId" class="space-y-3">
-                    <button 
-                        @click="safeSetInverterId(null)" 
-                        class="flex items-center space-x-1 text-zinc-500 hover:text-lime-400 text-[9px] font-black uppercase transition py-0.5">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-                        </svg>
-                        <span>Cofnij do wyboru Falownika</span>
-                    </button>
-
-                    <!-- Karta Info-Nagłówkowa -->
-                    <div class="bg-zinc-950 border border-zinc-800 rounded-xl p-3 shadow-xl flex items-center justify-between">
-                        <div>
-                            <span class="text-[8px] text-zinc-500 font-black uppercase tracking-wider block">
-                                {{ getTeamName(selectedTeamId) }} &bull; Trafo {{ getInverterTrafoNo(selectedInverterId) }}
-                            </span>
-                            <h3 class="text-base font-black text-lime-400 uppercase tracking-wider mt-0.5">
-                                Falownik {{ getInverterName(selectedInverterId) }}
-                            </h3>
-                        </div>
-                        <div class="text-right flex flex-col items-end">
-                            <span class="text-[8px] text-zinc-500 font-black uppercase tracking-widest block font-bold">Zużyte łącznie</span>
-                            <span class="text-lg font-black text-zinc-100">
-                                {{ calculateInverterTotalUsed(selectedInverterId) }} <span class="text-[9px] text-lime-400">m</span>
-                            </span>
-                            <!-- Szybki przycisk dodawania bębna -->
-                            <button 
-                                v-if="globalWorkMode === 'drums'"
-                                @click="addNewDrum"
-                                class="mt-1 bg-lime-400/20 hover:bg-lime-400 hover:text-zinc-950 text-lime-400 font-bold text-[8px] px-2 py-0.5 rounded uppercase tracking-wider transition-all">
-                                + Dodaj bęben
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- ================= INTERFEJS: TRYB BĘBNY ================= -->
-                    <div v-if="globalWorkMode === 'drums'" class="space-y-3">
-                        <div v-if="filteredDrums.length === 0" class="text-center py-8 bg-zinc-950 border border-dashed border-zinc-800 rounded-2xl">
-                            <p class="text-zinc-500 text-xs">Brak bębnów pod tym falownikiem.</p>
-                            <p class="text-[9px] text-zinc-600 mt-0.5">Użyj przycisku, aby dodać nowy bęben roboczy.</p>
-                        </div>
-
-                        <!-- Karta Pojedynczego Bębna -->
-                        <div v-for="(drum, index) in filteredDrums" :key="drum.id" 
-                             :class="drum.isCloud ? 'bg-zinc-950/40 border-zinc-900 opacity-95' : 'bg-zinc-950 border-zinc-850'"
-                             class="border rounded-2xl p-3.5 space-y-2.5 shadow-lg relative transition-all">
-                            
-                            <!-- Header bębna -->
-                            <div class="flex items-center justify-between border-b border-zinc-850 pb-1.5">
-                                <div class="flex items-center space-x-1.5">
-                                    <span class="text-[9px] font-black uppercase tracking-widest text-zinc-300">BĘBEN #{{ index + 1 }}</span>
-                                    
-                                    <!-- Statusy synchronizacji -->
-                                    <span v-if="drum.isCloud" class="bg-lime-400/10 text-lime-400 border border-lime-400/20 px-1.5 py-0.2 text-[7px] font-black rounded uppercase">Zapisano w chmurze ✅</span>
-                                    <span v-else-if="drum.syncStatus === 'success'" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.2 text-[7px] font-bold rounded uppercase">Zapisano lokalnie</span>
-                                    <span v-else-if="drum.syncStatus === 'offline_queued'" class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.2 text-[7px] font-bold rounded uppercase">Kolejka offline ⏳</span>
-                                    <span v-else class="bg-zinc-850 text-zinc-400 border border-zinc-800 px-1.5 py-0.2 text-[7px] font-bold rounded uppercase">Twój nowy wpis ✏️</span>
-                                </div>
-                                <button v-if="!drum.isCloud" @click="deleteDrum(drum.id)" class="text-red-500 hover:text-red-400 p-1 rounded-lg hover:bg-red-500/10 transition">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                </button>
-                            </div>
-
-                            <!-- Pola wejściowe (zablokowane, jeśli z chmury) -->
-                            <div class="space-y-2">
-                                <div>
-                                    <label class="block text-[8px] font-bold uppercase text-zinc-500 mb-0.5">Długość całkowita bębna (m):</label>
-                                    <div class="relative">
-                                        <input 
-                                            v-model.number="drum.totalLength" 
-                                            type="number" min="0" placeholder="np. 500 (wpisz 0 gdy nieznana)"
-                                            :disabled="drum.isCloud"
-                                            :class="drum.isCloud ? 'bg-zinc-900/40 text-zinc-500 border-zinc-900' : 'bg-zinc-900 text-zinc-200 border-zinc-800'"
-                                            class="w-full border rounded-xl px-2.5 py-1.5 text-xs font-black focus:outline-none focus:border-lime-400"
-                                            @input="saveDrums">
-                                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-bold text-zinc-600">m</span>
-                                    </div>
-                                    <p v-if="drum.totalLength === 0" class="text-[8px] text-yellow-500 font-bold mt-0.5">
-                                        ⚠️ Stan nieznany (0) - pozostała długość nie zostanie obliczona.
-                                    </p>
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label class="block text-[8px] font-bold uppercase text-zinc-500 mb-0.5">Odczyt start (m):</label>
-                                        <div class="relative">
-                                            <input 
-                                                v-model.number="drum.startMeter" 
-                                                type="number" min="0" placeholder="Start"
-                                                :disabled="drum.isCloud"
-                                                :class="drum.isCloud ? 'bg-zinc-900/40 text-zinc-500 border-zinc-900' : 'bg-zinc-900 text-zinc-200 border-zinc-800'"
-                                                class="w-full border rounded-xl px-2.5 py-1.5 text-xs font-black focus:outline-none focus:border-lime-400"
-                                                @input="saveDrums">
-                                            <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[8px] font-bold text-zinc-600">m</span>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-[8px] font-bold uppercase text-zinc-500 mb-0.5">Odczyt koniec (m):</label>
-                                        <div class="relative">
-                                            <input 
-                                                v-model.number="drum.endMeter" 
-                                                type="number" min="0" placeholder="Koniec"
-                                                :disabled="drum.isCloud"
-                                                :class="drum.isCloud ? 'bg-zinc-900/40 text-zinc-500 border-zinc-900' : 'bg-zinc-900 text-zinc-200 border-zinc-800'"
-                                                class="w-full border rounded-xl px-2.5 py-1.5 text-xs font-black focus:outline-none focus:border-lime-400"
-                                                @input="saveDrums">
-                                            <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[8px] font-bold text-zinc-600">m</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Podsumowanie zużycia i zapasu -->
-                            <div class="grid grid-cols-2 gap-2 pt-0.5">
-                                <div class="bg-zinc-900 p-2 rounded-xl border border-zinc-850">
-                                    <span class="text-[8px] font-black uppercase text-zinc-500">Zużycie kabla</span>
-                                    <div class="text-xs font-black text-zinc-100 mt-0.5">
-                                        {{ calculateDrumUsed(drum) }} <span class="text-[8px] text-lime-400">m</span>
-                                    </div>
-                                </div>
-                                <div class="bg-zinc-900 p-2 rounded-xl border border-zinc-850">
-                                    <span class="text-[8px] font-black uppercase text-zinc-500">Zapas na bębnie</span>
-                                    <div class="text-xs font-black text-zinc-100 mt-0.5">
-                                        {{ calculateDrumRemaining(drum) }} <span class="text-[8px] text-lime-400">m</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Przycisk dodawania bębna na końcu listy -->
-                        <button 
-                            @click="addNewDrum" 
-                            class="w-full bg-lime-400 hover:bg-lime-500 active:scale-95 text-zinc-950 font-black text-xs py-3.5 px-6 rounded-2xl transition-all shadow-xl shadow-lime-400/20 flex items-center justify-center space-x-1.5 uppercase tracking-wider mt-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
-                            </svg>
-                            <span>Dodaj bęben</span>
-                        </button>
-                    </div>
-
-                    <!-- ================= INTERFEJS: TRYB STRINGI ================= -->
-                    <div v-else class="space-y-3">
-                        <div class="bg-zinc-950 border border-zinc-850 rounded-2xl p-3.5 space-y-2.5">
-                            <div class="flex justify-between items-center border-b border-zinc-850 pb-1.5">
-                                <span class="text-[9px] font-black uppercase text-zinc-300 tracking-wider">Pomiary Stringów dla {{ getInverterName(selectedInverterId) }}</span>
-                                <span class="text-[8px] text-zinc-500 font-bold">Liczba stringów: {{ stringsCountPerInverter }}</span>
-                            </div>
-
-                            <div class="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
-                                <div v-for="sIdx in stringsCountPerInverter" :key="sIdx" 
-                                     :class="getStringData(selectedInverterId, sIdx).isCloud ? 'bg-zinc-950/40 border-zinc-900 opacity-90' : 'bg-zinc-900/50 border-zinc-850'"
-                                     class="p-2 rounded-xl border space-y-1.5 transition-all">
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-[9px] font-black uppercase text-lime-400">String #{{ sIdx }}</span>
-                                        <span v-if="getStringData(selectedInverterId, sIdx).isCloud" class="text-[7px] text-lime-400 bg-lime-400/10 border border-lime-400/20 px-1 rounded uppercase font-black">Chmura ✅</span>
-                                        <span v-else-if="getStringStatus(selectedInverterId, sIdx) === 'success'" class="text-[8px] text-emerald-400 font-bold">Wysłane lokalnie</span>
-                                        <span v-else-if="getStringStatus(selectedInverterId, sIdx) === 'offline_queued'" class="text-[8px] text-yellow-400 font-bold">Kolejka offline ⏳</span>
-                                        <span v-else class="text-[8px] text-zinc-500 font-bold">Twój nowy pomiar ✏️</span>
-                                    </div>
-
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <div>
-                                            <input 
-                                                v-model.number="getStringData(selectedInverterId, sIdx).startMeter" 
-                                                type="number" min="0" placeholder="Początek (m)"
-                                                :disabled="getStringData(selectedInverterId, sIdx).isCloud"
-                                                :class="getStringData(selectedInverterId, sIdx).isCloud ? 'bg-zinc-900/40 text-zinc-500 border-zinc-900' : 'bg-zinc-950 text-zinc-200 border-zinc-800'"
-                                                class="w-full border rounded-lg px-2 py-1 text-xs font-black focus:outline-none focus:border-lime-400"
-                                                @input="saveStrings">
-                                        </div>
-                                        <div>
-                                            <input 
-                                                v-model.number="getStringData(selectedInverterId, sIdx).endMeter" 
-                                                type="number" min="0" placeholder="Koniec (m)"
-                                                :disabled="getStringData(selectedInverterId, sIdx).isCloud"
-                                                :class="getStringData(selectedInverterId, sIdx).isCloud ? 'bg-zinc-900/40 text-zinc-500 border-zinc-900' : 'bg-zinc-950 text-zinc-200 border-zinc-800'"
-                                                class="w-full border rounded-lg px-2 py-1 text-xs font-black focus:outline-none focus:border-lime-400"
-                                                @input="saveStrings">
-                                        </div>
-                                    </div>
-
-                                    <div class="flex justify-between items-center text-[9px] text-zinc-400 bg-zinc-950/40 p-1 rounded-lg px-2">
-                                        <span>Zużycie: <strong class="text-lime-400">{{ calculateStringUsed(selectedInverterId, sIdx) }} m</strong></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- GŁÓWNY PRZYCISK: ZAPISZ I WYŚLIJ CAŁY FALOWNIK -->
-                    <div class="pt-2">
-                        <button 
-                            @click="syncInverterBatch"
-                            :disabled="batchSyncStatus === 'sending'"
-                            :class="{
-                                'bg-lime-400 hover:bg-lime-500 text-zinc-950': batchSyncStatus === 'idle' || batchSyncStatus === 'success' || batchSyncStatus === 'error',
-                                'bg-blue-600/30 text-blue-300 animate-pulse cursor-wait': batchSyncStatus === 'sending'
-                            }"
-                            class="w-full font-black py-3.5 rounded-2xl text-xs uppercase tracking-wider transition-all duration-300 shadow-lg shadow-lime-400/20 flex items-center justify-center space-x-2">
-                            <span v-if="batchSyncStatus === 'sending'">Wysyłanie nowych danych... ⏳</span>
-                            <span v-else>⚡ Zapisz i Wyślij Twój Falownik WR</span>
-                        </button>
-                    </div>
-
-                    <div class="h-6"></div>
-                </div>
-            </div>
-        </main>
-
-        <!-- BEZPIECZNY MODAL OSTRZEŻENIA PRZED UTRATĄ DANYCH (UI MODAL) -->
-        <div v-if="showUnsavedWarningModal" class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div class="bg-zinc-900 border-2 border-red-500/50 rounded-2xl p-5 max-w-sm w-full space-y-4 shadow-2xl">
-                <div class="flex items-center space-x-3 text-red-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <div>
-                        <h3 class="text-xs font-black uppercase tracking-wider text-zinc-100">Niewysłane pomiary!</h3>
-                        <p class="text-[9px] font-bold text-red-400/80">Wykryto brak synchronizacji falownika</p>
-                    </div>
-                </div>
-                <p class="text-[10px] text-zinc-400 leading-relaxed">
-                    Masz na tym falowniku nowe, lokalne pomiary, które nie zostały jeszcze wysłane do Google Sheets. Jeśli teraz wyjdziesz, praca ta nie zostanie uaktualniona w chmurze u innych.
-                </p>
                 <div class="grid grid-cols-2 gap-2">
-                    <button 
-                        @click="discardChangesAndNavigate" 
-                        class="bg-zinc-800 hover:bg-red-950/40 text-red-400 border border-zinc-700 hover:border-red-500/30 font-black py-2.5 px-3 rounded-xl text-[10px] uppercase tracking-wider transition">
-                        Porzuć zmiany
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Tryb Pracy</label>
+                        <select id="setting-work-mode" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-neon-500 text-xs">
+                            <option value="Bębny">Bębny (Pełny)</option>
+                            <option value="Stringi">Stringi (Prosty)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Ilość Teamów</label>
+                        <input type="number" id="setting-teams-count" min="1" max="10" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-neon-500 text-xs">
+                    </div>
+                </div>
+                <div class="border-t border-dark-700 pt-3">
+                    <p class="text-[11px] text-gray-400 mb-2">Mapowanie Trafostacji i Falowników:</p>
+                    <div class="grid grid-cols-2 gap-2" id="trafos-mapping-inputs">
+                        <!-- Dynamic inputs mapping -->
+                    </div>
+                </div>
+                <div class="pt-3 border-t border-dark-700 flex flex-col space-y-2">
+                    <button onclick="saveLocalSettings()" class="w-full py-2.5 bg-neon-500 text-dark-900 font-bold rounded-xl shadow-neon-glow hover:bg-neon-600 transition-all text-xs">
+                        ZAPISZ USTAWIENIA LOKALNIE
                     </button>
-                    <button 
-                        @click="showUnsavedWarningModal = false" 
-                        class="bg-lime-400 hover:bg-lime-500 text-zinc-950 font-black py-2.5 px-3 rounded-xl text-[10px] uppercase tracking-wider transition">
-                        Zostań i wyślij
+                    <button onclick="confirmFactoryReset()" class="w-full py-2.5 bg-red-600/20 border border-red-500/30 text-red-400 font-bold rounded-xl hover:bg-red-600 hover:text-white transition-all text-xs">
+                        <i class="fa-solid fa-trash-can mr-1"></i> PRZYWRÓĆ USTAWIENIA FABRYCZNE
                     </button>
                 </div>
             </div>
         </div>
-
-        <!-- DOLNA STOPKA -->
-        <footer class="mt-auto bg-zinc-950 border-t border-zinc-850 py-2.5 px-4 z-30">
-            <!-- Toast UI -->
-            <transition name="slide-up">
-                <div v-if="toast.show" class="fixed bottom-14 left-1/2 -translate-x-1/2 z-50 bg-lime-400 text-zinc-950 font-black px-4 py-2.5 rounded-xl shadow-2xl flex items-center space-x-2 text-xs border border-lime-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>{{ toast.message }}</span>
-                </div>
-            </transition>
-
-            <div class="flex items-center justify-between text-[10px] text-zinc-500">
-                <span>Wersja PV Pro Cloud v6.0</span>
-                <span>PV Cable Cloud Multi-User Systems</span>
-            </div>
-        </footer>
-
     </div>
 
-    <!-- Vue 3 CDN -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Modal: Confirmation Unsaved Changes Warning -->
+    <div id="warning-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-dark-800 border-2 border-amber-500 w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl p-6 text-center space-y-4">
+            <div class="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto animate-bounce">
+                <i class="fa-solid fa-triangle-exclamation text-3xl"></i>
+            </div>
+            <div>
+                <h3 class="font-extrabold text-xl text-white uppercase tracking-wide">NIEWYSŁANE POMIARY!</h3>
+                <p class="text-sm text-gray-300 mt-2">Wykryto brak synchronizacji falownika z arkuszem Google. Wyjście spowoduje utratę nowo wpisanych danych.</p>
+            </div>
+            <div class="flex flex-col space-y-2 pt-2">
+                <button id="warning-stay-btn" class="w-full py-3 bg-neon-500 text-dark-900 font-extrabold rounded-xl shadow-neon-glow text-sm">
+                    ZOSTAŃ I WYŚLIJ
+                </button>
+                <button id="warning-discard-btn" class="w-full py-3 bg-dark-700 text-slate-300 font-bold rounded-xl text-sm">
+                    PORZUĆ ZMIANY
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Factory Reset Confirm -->
+    <div id="reset-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-dark-800 border-2 border-red-500 w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl p-6 text-center space-y-4">
+            <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto">
+                <i class="fa-solid fa-circle-exclamation text-3xl"></i>
+            </div>
+            <div>
+                <h3 class="font-extrabold text-xl text-white uppercase tracking-wide">CZY JESTEŚ PEWIEN?</h3>
+                <p class="text-sm text-gray-300 mt-2">Ta operacja CAŁKOWICIE wyczyści dane w Arkuszu Google (zakładka "Metry") i przywróci domyślną konfigurację fabryczną.</p>
+            </div>
+            <div class="flex flex-col space-y-2 pt-2">
+                <button id="reset-confirm-btn" onclick="executeFactoryReset()" class="w-full py-3 bg-red-600 text-white font-extrabold rounded-xl text-sm shadow-lg hover:bg-red-700 transition-all">
+                    TAK, WYCZYŚĆ I RESETUJ
+                </button>
+                <button onclick="closeResetModal()" class="w-full py-3 bg-dark-700 text-slate-300 font-bold rounded-xl text-sm">
+                    ANULUJ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Loading/Sync Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-[100] flex items-center justify-center flex-col space-y-3 hidden">
+        <div class="relative w-16 h-16">
+            <div class="absolute inset-0 border-4 border-dark-700 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-neon-500 rounded-full animate-spin border-t-transparent"></div>
+        </div>
+        <p id="loading-text" class="text-sm font-bold tracking-widest uppercase text-neon-500 animate-pulse">Synchronizacja danych...</p>
+    </div>
+
+    <!-- Toast Notification Message -->
+    <div id="toast" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-2 text-xs font-bold transition-all duration-300 translate-y-20 opacity-0 z-50 pointer-events-none">
+        <i class="fa-solid fa-circle-check text-base"></i>
+        <span id="toast-message">Operacja powiodła się!</span>
+    </div>
 
     <script>
-        // HARDCODOWANY CHMUROWY URL SKRYPTU GOOGLE SHEETS
-        const CLOUD_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwxfCuWFeP9E6F-RdSfp56cJa5g-KxKlWob09eTuUV3UVDf41pO5Jctvg0Z3gZvRAU87Q/exec';
-        const DEFAULT_EMBED_URL = '';
+        // Default Factory Configuration
+        const DEFAULTS = {
+            gasUrl: "",
+            config: {
+                workMode: "Bębny",
+                teamsCount: 2,
+                trafos: {
+                    "Trafo 1": 12,
+                    "Trafo 2": 12
+                },
+                stringsCount: 12
+            }
+        };
 
-        const { createApp, ref, computed, onMounted } = Vue;
+        // Reactive Application State
+        let state = {
+            gasUrl: localStorage.getItem('dc_cable_gas_url') || DEFAULTS.gasUrl,
+            config: JSON.parse(localStorage.getItem('dc_cable_config')) || DEFAULTS.config,
+            savedMeters: JSON.parse(localStorage.getItem('dc_cable_saved_meters')) || [],
+            activeStep: 'teams', // 'teams' | 'inverters' | 'monter-form'
+            selectedTeam: localStorage.getItem('dc_cable_selected_team') || null,
+            selectedTrafoFilter: 'Wszystkie',
+            selectedInverter: null, // format e.g. "WR 1.2"
+            unsavedChanges: false,
+            localFormCache: {} // structure: { "WR 1.2": [ {drumData...} ] }
+        };
 
-        createApp({
-            setup() {
-                // Nawigacja
-                const currentView = ref('user');
-                const selectedTeamId = ref(null);
-                const selectedInverterId = ref(null);
-                const selectedTrafoFilter = ref('all');
+        // Cache persistent parameters
+        function saveState() {
+            localStorage.setItem('dc_cable_config', JSON.stringify(state.config));
+            localStorage.setItem('dc_cable_saved_meters', JSON.stringify(state.savedMeters));
+            if (state.selectedTeam) {
+                localStorage.setItem('dc_cable_selected_team', state.selectedTeam);
+            } else {
+                localStorage.removeItem('dc_cable_selected_team');
+            }
+        }
+
+        // Show toast notification
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.innerText = message;
+            if (isError) {
+                toast.classList.remove('bg-emerald-600');
+                toast.classList.add('bg-red-600');
+            } else {
+                toast.classList.remove('bg-red-600');
+                toast.classList.add('bg-emerald-600');
+            }
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Handle Loader screen
+        function setLoader(show, text = "Synchronizacja danych...") {
+            const loader = document.getElementById('loading-overlay');
+            const loaderTxt = document.getElementById('loading-text');
+            loaderTxt.innerText = text;
+            if (show) {
+                loader.classList.remove('hidden');
+            } else {
+                loader.classList.add('hidden');
+            }
+        }
+
+        // Check if there are active network credentials
+        function updateConnectionBanner() {
+            const banner = document.getElementById('connection-banner');
+            const syncDot = document.getElementById('sync-dot');
+            if (!state.gasUrl) {
+                banner.classList.remove('hidden');
+                syncDot.classList.add('hidden');
+            } else {
+                banner.classList.add('hidden');
+                syncDot.classList.remove('hidden');
+            }
+        }
+
+        // Bidirectional Sync: Pull from Google Sheets
+        async function fetchCloudData() {
+            if (!state.gasUrl) {
+                showToast("Brak URL skryptu Google. Przejdź do ustawień.", true);
+                openSettingsModal();
+                return;
+            }
+            setLoader(true, "Pobieranie danych z arkusza...");
+            try {
+                const response = await fetch(`${state.gasUrl}?action=getData`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                if (!response.ok) throw new Error("Błąd sieci");
+                const result = await response.json();
                 
-                const showUnsavedWarningModal = ref(false);
-                const pendingNavigation = ref(null);
-
-                // Integracja i status ładowania na żywo
-                const googleWebAppUrl = ref(CLOUD_WEB_APP_URL);
-                const googleSheetEmbedUrl = ref('');
-                const isOnline = ref(navigator.onLine);
-                const pendingSyncQueue = ref([]);
-                const isLoading = ref(true);
-                const isFetchingUpdate = ref(false);
-                const showOfflineFallbackBtn = ref(false);
-
-                // Dane dynamiczne zaciągane z chmury
-                const globalWorkMode = ref('drums'); // 'drums' | 'strings'
-                const stringsCountPerInverter = ref(12);
-                const teams = ref([]);
-                const trafos = ref([]);
-                const inverters = ref([]);
-
-                // Dane pomiarów lokalnych i chmurowych
-                const drums = ref([]);
-                const stringsData = ref({}); 
-
-                // Zmienne systemowe
-                const batchSyncStatus = ref('idle');
-                const toast = ref({ show: false, message: '' });
-
-                const showToast = (msg) => {
-                    toast.value.message = msg;
-                    toast.value.show = true;
-                    setTimeout(() => {
-                        toast.value.show = false;
-                    }, 3500);
-                };
-
-                const fetchCloudData = async () => {
-                    if (!navigator.onLine) {
-                        showToast('Brak połączenia z siecią. Uruchamianie z bazy lokalnej.');
-                        useOfflineBackup();
-                        return;
+                if (result.status === "success") {
+                    // Update configuration
+                    if (result.config) {
+                        state.config = result.config;
                     }
-
-                    isFetchingUpdate.value = true;
-                    try {
-                        // Usunięcie nagłówka Accept zapobiega wyzwoleniu blokowanego przez Google preflight OPTIONS
-                        const response = await fetch(googleWebAppUrl.value);
-                        const data = await response.json();
-                        
-                        if (data.status === 'success') {
-                            // 1. Zapis konfiguracji projektu z chmury
-                            const config = data.config;
-                            if (config) {
-                                globalWorkMode.value = config.globalWorkMode || 'drums';
-                                stringsCountPerInverter.value = parseInt(config.stringsCountPerInverter) || 12;
-                                teams.value = config.teams || [];
-                                trafos.value = config.trafos || [];
-                                
-                                // Auto-generowanie falowników na bazie trafostacji z chmury
-                                const cloudInverters = [];
-                                trafos.value.forEach(trafo => {
-                                    for(let i = 1; i <= trafo.inverterCount; i++) {
-                                        cloudInverters.push({
-                                            id: `wr-${trafo.trafoNo}-${i}`,
-                                            trafoId: trafo.id,
-                                            trafoNo: trafo.trafoNo,
-                                            invNo: i,
-                                            name: `WR {{ trafo.trafoNo }}.${i}`.replace('{{ trafo.trafoNo }}', trafo.trafoNo)
-                                        });
-                                    }
-                                });
-                                inverters.value = cloudInverters;
-                                
-                                // Cache lokalny struktur
-                                localStorage.setItem('pv_global_work_mode', globalWorkMode.value);
-                                localStorage.setItem('pv_strings_count_per_inverter', stringsCountPerInverter.value.toString());
-                                localStorage.setItem('pv_teams', JSON.stringify(teams.value));
-                                localStorage.setItem('pv_trafos', JSON.stringify(trafos.value));
-                                localStorage.setItem('pv_inverters', JSON.stringify(inverters.value));
-                            }
-
-                            // 2. Przetworzenie wszystkich istniejących pomiarów z chmury
-                            const records = data.records || [];
-                            processCloudRecords(records);
-
-                            showToast('Baza danych zaktualizowana z chmury! ☁️');
-                        } else {
-                            throw new Error('Błąd struktury API Google Sheets');
-                        }
-                    } catch (err) {
-                        console.error('Błąd pobierania danych:', err);
-                        showToast('Błąd synchronizacji. Korzystanie z kopii lokalnej.');
-                        useOfflineBackup();
-                    } finally {
-                        isLoading.value = false;
-                        isFetchingUpdate.value = false;
+                    // Update synced meters database
+                    if (result.meters) {
+                        state.savedMeters = result.meters;
                     }
-                };
+                    saveState();
+                    showToast("Dane zostały pomyślnie zsynchronizowane!");
+                    updateAppLayout();
+                } else {
+                    throw new Error(result.message || "Błąd pobierania");
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("Nie udało się pobrać danych ze skryptu Google. Tryb offline.", true);
+            } finally {
+                setLoader(false);
+            }
+        }
 
-                const processCloudRecords = (records) => {
-                    // Pozostawiamy tylko lokalne wpisy, które nie są jeszcze zsynchronizowane
-                    const localUnsyncedDrums = drums.value.filter(d => !d.isCloud && d.syncStatus !== 'success');
-                    drums.value = [...localUnsyncedDrums];
+        // Calculations & Aggregation logic
+        function calculateInverterTotal(wrName) {
+            // Sum usage from synced data (saved in Google Sheets)
+            let total = 0;
+            state.savedMeters.forEach(row => {
+                if (row.Falownik_WR === wrName) {
+                    total += parseFloat(row.Zuzycie) || 0;
+                }
+            });
 
-                    // Przetwarzanie pobranych bębnów
-                    records.forEach(rec => {
-                        const invObj = inverters.value.find(i => i.name === rec.inverter && `Trafo ${i.trafoNo}` === rec.trafoNo);
-                        if (!invObj) return;
+            // Add un-synced local changes for this specific inverter
+            if (state.localFormCache[wrName]) {
+                let localTotal = 0;
+                state.localFormCache[wrName].forEach(row => {
+                    localTotal += parseFloat(row.Zuzycie) || 0;
+                });
+                // If we edited locally, that overrides or is a fresh session for this team
+                return localTotal;
+            }
 
-                        if (rec.workMode === 'BĘBNY') {
-                            drums.value.push({
-                                id: rec.id || `cloud-${Date.now()}-${Math.random()}`,
-                                inverterId: invObj.id,
-                                totalLength: parseFloat(rec.totalLength) || 0,
-                                startMeter: parseFloat(rec.startMeter) || 0,
-                                endMeter: parseFloat(rec.endMeter) || 0,
-                                isCloud: true,
-                                syncStatus: 'success'
-                            });
-                        } else if (rec.workMode === 'STRINGI') {
-                            const matchStr = rec.identifier.match(/\d+/);
-                            if (matchStr) {
-                                const strIndex = parseInt(matchStr[0]);
-                                const key = `${invObj.id}_${strIndex}`;
-                                stringsData.value[key] = {
-                                    startMeter: parseFloat(rec.startMeter) || 0,
-                                    endMeter: parseFloat(rec.endMeter) || 0,
-                                    isCloud: true,
-                                    syncStatus: 'success'
-                                };
-                            }
-                        }
-                    });
+            return total;
+        }
 
-                    // Zapisz zaktualizowane tabele pomiarowe w localStorage
-                    localStorage.setItem('pv_drums', JSON.stringify(drums.value));
-                    localStorage.setItem('pv_strings_data', JSON.stringify(stringsData.value));
-                };
+        function calculateTrafoTotal(trafoName) {
+            let total = 0;
+            const limit = state.config.trafos[trafoName] || 0;
+            const trafoIdNum = trafoName.replace(/\D/g, ""); // extract e.g. "1" from "Trafo 1"
+            for (let i = 1; i <= limit; i++) {
+                const wr = `WR ${trafoIdNum}.${i}`;
+                total += calculateInverterTotal(wr);
+            }
+            return total;
+        }
 
-                const useOfflineBackup = () => {
-                    isLoading.value = false;
-                    showToast('Tryb pracy lokalnej uruchomiony.');
-                };
+        function calculateGlobalTotal() {
+            let total = 0;
+            Object.keys(state.config.trafos).forEach(trafo => {
+                total += calculateTrafoTotal(trafo);
+            });
+            return total;
+        }
 
-                const hasUnsentChanges = () => {
-                    if (!selectedInverterId.value) return false;
+        // Check if inverter has been locked by other team / or already synchronized
+        function getInverterLockStatus(wrName) {
+            // Find if there is any synced data for this inverter
+            const syncedEntries = state.savedMeters.filter(row => row.Falownik_WR === wrName);
+            if (syncedEntries.length > 0) {
+                // If already completed by another team, lock it!
+                const otherTeamEntry = syncedEntries.find(row => row.Team !== state.selectedTeam);
+                if (otherTeamEntry) {
+                    return { locked: true, reason: `Zablokowane przez: ${otherTeamEntry.Team}` };
+                }
+                return { locked: true, reason: 'Zatwierdzone i zsynchronizowane' };
+            }
+            return { locked: false };
+        }
+
+        // NAVIGATION SYSTEM: Step Renderers
+        function setStep(step) {
+            state.activeStep = step;
+            updateAppLayout();
+        }
+
+        function updateAppLayout() {
+            updateConnectionBanner();
+            
+            // Bottom stats bar control
+            const footer = document.getElementById('bottom-stats-bar');
+            if (state.selectedTeam && state.activeStep !== 'teams') {
+                footer.classList.remove('translate-y-full');
+                document.getElementById('active-team-label').innerText = `ZESPÓŁ: ${state.selectedTeam}`;
+                document.getElementById('active-wr-label').innerText = state.selectedInverter || '-';
+                document.getElementById('total-global-meters').innerText = calculateGlobalTotal().toFixed(2);
+            } else {
+                footer.classList.add('translate-y-full');
+            }
+
+            const appView = document.getElementById('app-view');
+
+            if (state.activeStep === 'teams') {
+                renderTeamsView(appView);
+            } else if (state.activeStep === 'inverters') {
+                renderInvertersView(appView);
+            } else if (state.activeStep === 'monter-form') {
+                renderMonterFormView(appView);
+            }
+        }
+
+        // SCREEN 1: Team Selection
+        function renderTeamsView(container) {
+            let teamsHtml = '';
+            const count = state.config.teamsCount || 2;
+            
+            for (let i = 1; i <= count; i++) {
+                const teamName = `Team ${i}`;
+                const isSelected = state.selectedTeam === teamName;
+                teamsHtml += `
+                    <button onclick="selectTeam('${teamName}')" class="w-full flex items-center justify-between p-5 bg-dark-800 border-2 ${isSelected ? 'border-neon-500 shadow-neon-glow' : 'border-dark-700'} rounded-2xl active:scale-95 transition-all text-left">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-xl bg-dark-700 flex items-center justify-center text-neon-500 text-xl font-bold">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white text-base">${teamName}</h4>
+                                <p class="text-xs text-gray-400">Kliknij, aby wejść do panelu</p>
+                            </div>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-dark-900 border border-dark-600 flex items-center justify-center text-neon-500">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </div>
+                    </button>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="text-center py-4">
+                        <h2 class="text-2xl font-black text-white">Wybierz Zespół Roboczy</h2>
+                        <p class="text-xs text-gray-400 mt-1">Wybierz swój zespół, aby rejestrować kable</p>
+                    </div>
+                    <div class="space-y-3">
+                        ${teamsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectTeam(teamName) {
+            state.selectedTeam = teamName;
+            saveState();
+            setStep('inverters');
+        }
+
+        // SCREEN 2: Inverters Dashboard
+        function renderInvertersView(container) {
+            // Trafo Filter pill buttons
+            let filterPills = `
+                <button onclick="setTrafoFilter('Wszystkie')" class="px-4 py-2 rounded-xl text-xs font-bold transition-all ${state.selectedTrafoFilter === 'Wszystkie' ? 'bg-neon-500 text-dark-900 shadow-neon-glow' : 'bg-dark-800 text-gray-300 border border-dark-700'}">
+                    Wszystkie
+                </button>
+            `;
+            Object.keys(state.config.trafos).forEach(trafo => {
+                const isSelected = state.selectedTrafoFilter === trafo;
+                filterPills += `
+                    <button onclick="setTrafoFilter('${trafo}')" class="px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${isSelected ? 'bg-neon-500 text-dark-900 shadow-neon-glow' : 'bg-dark-800 text-gray-300 border border-dark-700'}">
+                        ${trafo}
+                    </button>
+                `;
+            });
+
+            // Generating Inverters cards grid
+            let cardsGrid = '';
+            Object.entries(state.config.trafos).forEach(([trafoName, limit]) => {
+                if (state.selectedTrafoFilter !== 'Wszystkie' && state.selectedTrafoFilter !== trafoName) return;
+
+                const trafoIdNum = trafoName.replace(/\D/g, ""); // "Trafo 1" -> "1"
+                
+                cardsGrid += `
+                    <div class="col-span-2 mt-4 first:mt-0">
+                        <h3 class="text-xs font-black text-neon-500 uppercase tracking-widest flex items-center space-x-2">
+                            <span class="w-1.5 h-3 bg-neon-500 rounded-full"></span>
+                            <span>${trafoName} (Rozdzielnia)</span>
+                        </h3>
+                    </div>
+                `;
+
+                for (let i = 1; i <= limit; i++) {
+                    const wrName = `WR ${trafoIdNum}.${i}`;
+                    const usage = calculateInverterTotal(wrName);
+                    const lockData = getInverterLockStatus(wrName);
                     
-                    if (globalWorkMode.value === 'drums') {
-                        const currentDrums = drums.value.filter(d => d.inverterId === selectedInverterId.value);
-                        return currentDrums.some(d => !d.isCloud && d.syncStatus !== 'success');
+                    let statusLabel = '';
+                    let cardBg = 'bg-dark-800 border-dark-700';
+                    let actionClick = `selectInverter('${wrName}')`;
+
+                    if (lockData.locked) {
+                        cardBg = 'bg-dark-800/40 border-dark-800/80 opacity-60';
+                        statusLabel = `<span class="text-[9px] bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded-full font-bold flex items-center"><i class="fa-solid fa-lock mr-1"></i> ${lockData.reason}</span>`;
+                        // Allows viewing but prevents edit (handled inside selectInverter)
+                    } else if (usage > 0) {
+                        cardBg = 'bg-dark-800 border-neon-500/50 shadow-sm';
+                        statusLabel = `<span class="text-[9px] bg-neon-500/10 text-neon-500 border border-neon-500/20 px-2 py-0.5 rounded-full font-bold flex items-center"><i class="fa-solid fa-check mr-1"></i> Gotowe do wysyłki</span>`;
                     } else {
-                        for (let sIdx = 1; sIdx <= stringsCountPerInverter.value; sIdx++) {
-                            const key = `${selectedInverterId.value}_${sIdx}`;
-                            if (stringsData.value[key]) {
-                                const str = stringsData.value[key];
-                                if (!str.isCloud && (str.startMeter !== null || str.endMeter !== null) && str.syncStatus !== 'success') {
-                                    return true;
-                                }
-                            }
-                        }
+                        statusLabel = `<span class="text-[9px] bg-dark-700 text-gray-400 px-2 py-0.5 rounded-full font-semibold">Brak danych</span>`;
                     }
-                    return false;
-                };
 
-                const safeSetView = (view) => {
-                    if (currentView.value === 'user' && hasUnsentChanges()) {
-                        pendingNavigation.value = { type: 'view', value: view };
-                        showUnsavedWarningModal.value = true;
+                    cardsGrid += `
+                        <div onclick="${actionClick}" class="col-span-1 p-4 rounded-2xl border ${cardBg} cursor-pointer active:scale-95 transition-all flex flex-col justify-between space-y-3">
+                            <div class="flex items-start justify-between">
+                                <span class="font-extrabold text-white text-sm">${wrName}</span>
+                                <div class="text-xs text-gray-400"><i class="fa-solid fa-plug text-neon-500"></i></div>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-gray-400 uppercase tracking-wider leading-none">Zużycie:</p>
+                                <p class="text-lg font-black text-white mt-1">${usage.toFixed(1)} <span class="text-[10px] text-neon-500">m</span></p>
+                            </div>
+                            <div class="pt-1 flex items-center justify-between border-t border-dark-700/50">
+                                ${statusLabel}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <!-- Navigation / Back Button -->
+                    <div class="flex items-center justify-between">
+                        <button onclick="logoutTeam()" class="flex items-center space-x-1.5 text-xs text-gray-400 hover:text-white transition-all bg-dark-800 px-3 py-1.5 rounded-lg border border-dark-700">
+                            <i class="fa-solid fa-arrow-left-long"></i>
+                            <span>Wyloguj</span>
+                        </button>
+                        <span class="text-xs font-bold text-gray-300">ZESPÓŁ: <span class="text-neon-500">${state.selectedTeam}</span></span>
+                    </div>
+
+                    <!-- Horizontal Filters Slider -->
+                    <div class="flex space-x-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-none">
+                        ${filterPills}
+                    </div>
+
+                    <!-- Inverters Grid -->
+                    <div class="grid grid-cols-2 gap-3 pb-8">
+                        ${cardsGrid}
+                    </div>
+                </div>
+            `;
+        }
+
+        function setTrafoFilter(filterValue) {
+            state.selectedTrafoFilter = filterValue;
+            updateAppLayout();
+        }
+
+        function logoutTeam() {
+            state.selectedTeam = null;
+            saveState();
+            setStep('teams');
+        }
+
+        function selectInverter(wrName) {
+            const lockData = getInverterLockStatus(wrName);
+            if (lockData.locked && lockData.reason.includes("Zablokowane")) {
+                showToast(`Ten falownik został już uzupełniony przez inny zespół!`, true);
+                return;
+            }
+
+            state.selectedInverter = wrName;
+            
+            // If we don't have any current forms cache for this inverter, let's load what is in DB or default rows
+            if (!state.localFormCache[wrName]) {
+                const dbEntries = state.savedMeters.filter(row => row.Falownik_WR === wrName);
+                if (dbEntries.length > 0) {
+                    // Populate cache from current synched Google Sheet data
+                    state.localFormCache[wrName] = dbEntries.map(db => ({
+                        dbId: db.ID,
+                        nr: db.Numer_Bębna_Stringu,
+                        totalLen: parseFloat(db.Dlugosc_Bebna) || 0,
+                        start: parseFloat(db.Odczyt_Start) || 0,
+                        end: parseFloat(db.Odczyt_Koniec) || 0,
+                        usage: parseFloat(db.Zuzycie) || 0,
+                        remaining: parseFloat(db.Zapas) || 0
+                    }));
+                } else {
+                    // Initialize with 1 empty row for Drums / or strings count from config
+                    if (state.config.workMode === 'Bębny') {
+                        state.localFormCache[wrName] = [
+                            { nr: "BĘBEN #1", totalLen: 500, start: 0, end: 0, usage: 0, remaining: 0 }
+                        ];
                     } else {
-                        currentView.value = view;
-                    }
-                };
-
-                const safeSetTeamId = (teamId) => {
-                    if (hasUnsentChanges()) {
-                        pendingNavigation.value = { type: 'team_null', value: teamId };
-                        showUnsavedWarningModal.value = true;
-                    } else {
-                        selectedTeamId.value = teamId;
-                        selectedInverterId.value = null;
-                    }
-                };
-
-                const safeSetInverterId = (invId) => {
-                    if (hasUnsentChanges()) {
-                        pendingNavigation.value = { type: 'inverter_null', value: invId };
-                        showUnsavedWarningModal.value = true;
-                    } else {
-                        selectedInverterId.value = invId;
-                    }
-                };
-
-                const discardChangesAndNavigate = () => {
-                    showUnsavedWarningModal.value = false;
-                    if (!pendingNavigation.value) return;
-
-                    const nav = pendingNavigation.value;
-                    if (nav.type === 'view') {
-                        currentView.value = nav.value;
-                    } else if (nav.type === 'team_null') {
-                        selectedTeamId.value = null;
-                        selectedInverterId.value = null;
-                    } else if (nav.type === 'inverter_null') {
-                        selectedInverterId.value = null;
-                    }
-                    pendingNavigation.value = null;
-                };
-
-                // Generowanie linku instalacyjnego z konfiguracją
-                const generateShareLink = () => {
-                    const configObj = {
-                        globalWorkMode: globalWorkMode.value,
-                        googleSheetEmbedUrl: googleSheetEmbedUrl.value,
-                        stringsCountPerInverter: stringsCountPerInverter.value
-                    };
-                    try {
-                        const configString = JSON.stringify(configObj);
-                        const b64 = btoa(unescape(encodeURIComponent(configString)));
-                        const shareUrl = window.location.origin + window.location.pathname + "?config=" + b64;
-                        
-                        const tempInput = document.createElement('textarea');
-                        tempInput.value = shareUrl;
-                        document.body.appendChild(tempInput);
-                        tempInput.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(tempInput);
-                        
-                        showToast('Link konfiguracyjny skopiowany do schowka! 📱');
-                    } catch (e) {
-                        console.error(e);
-                        showToast('Problem z generowaniem linku.');
-                    }
-                };
-
-                const checkUrlConfig = () => {
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const configParam = urlParams.get('config');
-                    if (configParam) {
-                        try {
-                            const decodedString = decodeURIComponent(escape(atob(configParam)));
-                            const decoded = JSON.parse(decodedString);
-                            
-                            if (decoded.googleSheetEmbedUrl) localStorage.setItem('pv_google_sheet_embed_url', decoded.googleSheetEmbedUrl);
-                            
-                            window.history.replaceState({}, document.title, window.location.pathname);
-                            loadSettings();
-                        } catch (err) {
-                            console.error('Błąd linku konfiguracyjnego:', err);
-                        }
-                    }
-                };
-
-                const loadSettings = () => {
-                    googleSheetEmbedUrl.value = localStorage.getItem('pv_google_sheet_embed_url') || DEFAULT_EMBED_URL;
-                    pendingSyncQueue.value = JSON.parse(localStorage.getItem('pv_pending_sync_queue')) || [];
-                    globalWorkMode.value = localStorage.getItem('pv_global_work_mode') || 'drums';
-                    stringsCountPerInverter.value = parseInt(localStorage.getItem('pv_strings_count_per_inverter')) || 12;
-                };
-
-                const saveSettings = () => {
-                    localStorage.setItem('pv_google_sheet_embed_url', googleSheetEmbedUrl.value);
-                    showToast('Ustawienia zapisane!');
-                };
-
-                const loadData = () => {
-                    const savedTeams = localStorage.getItem('pv_teams');
-                    const savedTrafos = localStorage.getItem('pv_trafos');
-                    const savedInverters = localStorage.getItem('pv_inverters');
-                    const savedDrums = localStorage.getItem('pv_drums');
-                    const savedStrings = localStorage.getItem('pv_strings_data');
-
-                    if (savedTeams && savedTrafos && savedInverters) {
-                        teams.value = JSON.parse(savedTeams);
-                        trafos.value = JSON.parse(savedTrafos);
-                        inverters.value = JSON.parse(savedInverters);
-                        drums.value = savedDrums ? JSON.parse(savedDrums) : [];
-                        stringsData.value = savedStrings ? JSON.parse(savedStrings) : {};
-                    } else {
-                        // Inicjalna lokalna baza demo, nadpisana zaraz po pobraniu danych GET
-                        teams.value = [
-                            { id: 'team-1', name: 'Team 1 (Ładowanie z chmury...)' }
+                        // String mode: initialize with empty list
+                        state.localFormCache[wrName] = [
+                            { nr: "STRING #1", start: 0, end: 0, usage: 0 }
                         ];
                     }
-                };
-
-                const saveAllToStorage = () => {
-                    localStorage.setItem('pv_drums', JSON.stringify(drums.value));
-                    localStorage.setItem('pv_strings_data', JSON.stringify(stringsData.value));
-                };
-
-                const saveDrums = () => {
-                    localStorage.setItem('pv_drums', JSON.stringify(drums.value));
-                };
-
-                const saveStrings = () => {
-                    localStorage.setItem('pv_strings_data', JSON.stringify(stringsData.value));
-                };
-
-                const filteredInverters = computed(() => {
-                    if (!selectedTeamId.value) return [];
-                    if (selectedTrafoFilter.value === 'all') {
-                        return inverters.value;
-                    }
-                    return inverters.value.filter(inv => inv.trafoNo === selectedTrafoFilter.value);
-                });
-
-                const filteredDrums = computed(() => {
-                    if (!selectedInverterId.value) return [];
-                    return drums.value.filter(drum => drum.inverterId === selectedInverterId.value);
-                });
-
-                const getTeamName = (teamId) => {
-                    const team = teams.value.find(t => t.id === teamId);
-                    return team ? team.name : 'Nieznany Team';
-                };
-
-                const getInverterName = (invId) => {
-                    const inv = inverters.value.find(i => i.id === invId);
-                    return inv ? inv.name : 'Nieznany WR';
-                };
-
-                const getInverterTrafoNo = (invId) => {
-                    const inv = inverters.value.find(i => i.id === invId);
-                    return inv ? inv.trafoNo : 'N/A';
-                };
-
-                const calculateDrumUsed = (drum) => {
-                    const start = parseFloat(drum.startMeter) || 0;
-                    const end = parseFloat(drum.endMeter) || 0;
-                    return Math.abs(start - end);
-                };
-
-                const calculateDrumRemaining = (drum) => {
-                    if (drum.totalLength === 0 || !drum.totalLength) {
-                        return 0;
-                    }
-                    const used = calculateDrumUsed(drum);
-                    const remaining = drum.totalLength - used;
-                    return remaining >= 0 ? remaining : 0;
-                };
-
-                const getStringData = (inverterId, stringIndex) => {
-                    const key = `${inverterId}_${stringIndex}`;
-                    if (!stringsData.value[key]) {
-                        stringsData.value[key] = {
-                            startMeter: null,
-                            endMeter: null,
-                            isCloud: false,
-                            syncStatus: 'idle'
-                        };
-                    }
-                    return stringsData.value[key];
-                };
-
-                const getStringStatus = (inverterId, stringIndex) => {
-                    return getStringData(inverterId, stringIndex).syncStatus || 'idle';
-                };
-
-                const calculateStringUsed = (inverterId, stringIndex) => {
-                    const str = getStringData(inverterId, stringIndex);
-                    const start = parseFloat(str.startMeter) || 0;
-                    const end = parseFloat(str.endMeter) || 0;
-                    if (str.startMeter === null || str.endMeter === null) return 0;
-                    return Math.abs(start - end);
-                };
-
-                const calculateInverterTotalUsed = (invId) => {
-                    if (globalWorkMode.value === 'drums') {
-                        const invDrums = drums.value.filter(d => d.inverterId === invId);
-                        return invDrums.reduce((acc, d) => acc + calculateDrumUsed(d), 0);
-                    } else {
-                        let sum = 0;
-                        for(let i=1; i<=stringsCountPerInverter.value; i++) {
-                            sum += calculateStringUsed(invId, i);
-                        }
-                        return sum;
-                    }
-                };
-
-                const selectTeam = (teamId) => {
-                    selectedTeamId.value = teamId;
-                    selectedInverterId.value = null;
-                    selectedTrafoFilter.value = 'all';
-                };
-
-                const selectInverter = (invId) => {
-                    selectedInverterId.value = invId;
-                };
-
-                const addNewDrum = () => {
-                    if (!selectedInverterId.value) return;
-                    drums.value.push({
-                        id: `drum-${Date.now()}-${Math.random()}`,
-                        inverterId: selectedInverterId.value,
-                        totalLength: 500,
-                        startMeter: null,
-                        endMeter: null,
-                        isCloud: false,
-                        syncStatus: 'idle'
-                    });
-                    saveDrums();
-                    showToast('Dodano bęben roboczy!');
-                };
-
-                const deleteDrum = (id) => {
-                    drums.value = drums.value.filter(d => d.id !== id);
-                    pendingSyncQueue.value = pendingSyncQueue.value.filter(item => item.id !== id);
-                    localStorage.setItem('pv_pending_sync_queue', JSON.stringify(pendingSyncQueue.value));
-                    saveDrums();
-                    showToast('Bęben został usunięty.');
-                };
-
-                const sendToGoogleSheets = async (payload) => {
-                    try {
-                        const response = await fetch(googleWebAppUrl.value, {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                            body: JSON.stringify(payload)
-                        });
-                        return true;
-                    } catch (err) {
-                        console.error('API Error:', err);
-                        return false;
-                    }
-                };
-
-                // Synchronizacja zbiorcza całego Falownika
-                const syncInverterBatch = async () => {
-                    if (!googleWebAppUrl.value) {
-                        showToast('Skonfiguruj poprawny URL chmury!');
-                        return;
-                    }
-
-                    batchSyncStatus.value = 'sending';
-                    let itemsToSync = [];
-
-                    if (globalWorkMode.value === 'drums') {
-                        // Tylko lokalne i jeszcze niewysłane pomiary bębnów
-                        itemsToSync = drums.value.filter(d => d.inverterId === selectedInverterId.value && !d.isCloud && d.syncStatus !== 'success');
-                    } else {
-                        // Tylko lokalne stringi z wypełnionymi pomiarami
-                        for (let sIdx = 1; sIdx <= stringsCountPerInverter.value; sIdx++) {
-                            const str = getStringData(selectedInverterId.value, sIdx);
-                            if (!str.isCloud && str.startMeter !== null && str.endMeter !== null && str.syncStatus !== 'success') {
-                                itemsToSync.push({
-                                    type: 'string',
-                                    index: sIdx,
-                                    data: str
-                                });
-                            }
-                        }
-                    }
-
-                    if (itemsToSync.length === 0) {
-                        showToast('Brak nowych pomiarów do wysłania! Wszystko jest zsynchronizowane ✅');
-                        batchSyncStatus.value = 'idle';
-                        return;
-                    }
-
-                    showToast(`Rozpoczynam wysyłanie pomiarów (${itemsToSync.length} szt.)...`);
-                    let successes = 0;
-                    let queueOffline = 0;
-
-                    for (let i = 0; i < itemsToSync.length; i++) {
-                        const item = itemsToSync[i];
-                        let payload = {};
-
-                        if (globalWorkMode.value === 'drums') {
-                            payload = {
-                                id: item.id,
-                                timestamp: new Date().toLocaleString("pl-PL"),
-                                team: getTeamName(selectedTeamId.value),
-                                workMode: 'BĘBNY',
-                                trafoNo: `Trafo ${getInverterTrafoNo(selectedInverterId.value)}`,
-                                inverter: getInverterName(selectedInverterId.value),
-                                identifier: `Bęben #${drums.value.filter(d => d.inverterId === selectedInverterId.value).indexOf(item) + 1}`,
-                                totalLength: item.totalLength || 0,
-                                startMeter: item.startMeter || 0,
-                                endMeter: item.endMeter || 0,
-                                used: calculateDrumUsed(item),
-                                remaining: calculateDrumRemaining(item),
-                                notes: ""
-                            };
-
-                            item.syncStatus = 'sending';
-                            saveDrums();
-
-                            if (!navigator.onLine) {
-                                queueItem(item.id, payload, 'drum');
-                                item.syncStatus = 'offline_queued';
-                                queueOffline++;
-                            } else {
-                                const ok = await sendToGoogleSheets(payload);
-                                if (ok) {
-                                    item.syncStatus = 'success';
-                                    item.isCloud = true; // Zablokuj edycję po wysłaniu
-                                    successes++;
-                                } else {
-                                    queueItem(item.id, payload, 'drum');
-                                    item.syncStatus = 'offline_queued';
-                                    queueOffline++;
-                                }
-                            }
-                            saveDrums();
-                        } else {
-                            const strObj = item.data;
-                            const key = `${selectedInverterId.value}_${item.index}`;
-                            
-                            payload = {
-                                id: key,
-                                timestamp: new Date().toLocaleString("pl-PL"),
-                                team: getTeamName(selectedTeamId.value),
-                                workMode: 'STRINGI',
-                                trafoNo: `Trafo ${getInverterTrafoNo(selectedInverterId.value)}`,
-                                inverter: getInverterName(selectedInverterId.value),
-                                identifier: `String #${item.index}`,
-                                totalLength: 0,
-                                startMeter: strObj.startMeter || 0,
-                                endMeter: strObj.endMeter || 0,
-                                used: calculateStringUsed(selectedInverterId.value, item.index),
-                                remaining: 0,
-                                notes: ""
-                            };
-
-                            strObj.syncStatus = 'sending';
-                            saveStrings();
-
-                            if (!navigator.onLine) {
-                                queueItem(key, payload, 'string');
-                                strObj.syncStatus = 'offline_queued';
-                                queueOffline++;
-                            } else {
-                                const ok = await sendToGoogleSheets(payload);
-                                if (ok) {
-                                    strObj.syncStatus = 'success';
-                                    strObj.isCloud = true; // Zablokuj edycję po wysłaniu
-                                    successes++;
-                                } else {
-                                    queueItem(key, payload, 'string');
-                                    strObj.syncStatus = 'offline_queued';
-                                    queueOffline++;
-                                }
-                            }
-                            saveStrings();
-                        }
-                    }
-
-                    batchSyncStatus.value = 'idle';
-
-                    if (queueOffline > 0) {
-                        showToast(`Praca offline: ${successes} zapisano na serwerze, ${queueOffline} oczekuje na powrót sieci ⏳`);
-                    } else {
-                        showToast(`Synchronizacja pomyślna! Przesłano nowe rekordy: ${successes} ✅`);
-                    }
-                };
-
-                const queueItem = (id, payload, type) => {
-                    const idx = pendingSyncQueue.value.findIndex(q => q.id === id);
-                    if (idx !== -1) {
-                        pendingSyncQueue.value[idx] = { id, payload, type };
-                    } else {
-                        pendingSyncQueue.value.push({ id, payload, type });
-                    }
-                    localStorage.setItem('pv_pending_sync_queue', JSON.stringify(pendingSyncQueue.value));
-                };
-
-                const syncOfflineQueue = async () => {
-                    if (pendingSyncQueue.value.length === 0) return;
-                    if (!navigator.onLine) return;
-
-                    showToast(`Wysyłanie zaległych rekordów offline: ${pendingSyncQueue.value.length}...`);
-                    const queueCopy = [...pendingSyncQueue.value];
-
-                    for (const item of queueCopy) {
-                        const success = await sendToGoogleSheets(item.payload);
-                        if (success) {
-                            pendingSyncQueue.value = pendingSyncQueue.value.filter(q => q.id !== item.id);
-                            localStorage.setItem('pv_pending_sync_queue', JSON.stringify(pendingSyncQueue.value));
-
-                            if (item.type === 'drum') {
-                                const d = drums.value.find(drum => drum.id === item.id);
-                                if (d) {
-                                    d.syncStatus = 'success';
-                                    d.isCloud = true;
-                                }
-                            } else if (item.type === 'string') {
-                                if (stringsData.value[item.id]) {
-                                    stringsData.value[item.id].syncStatus = 'success';
-                                    stringsData.value[item.id].isCloud = true;
-                                }
-                            }
-                        } else {
-                            break;
-                        }
-                    }
-                    saveDrums();
-                    saveStrings();
-                };
-
-                const initConnectionListeners = () => {
-                    window.addEventListener('online', () => {
-                        isOnline.value = true;
-                        showToast('Połączenie przywrócone! Start synchronizacji...');
-                        setTimeout(() => {
-                            syncOfflineQueue();
-                            fetchCloudData();
-                        }, 2000);
-                    });
-                    window.addEventListener('offline', () => {
-                        isOnline.value = false;
-                        showToast('Utrata sieci. Przełączono na bufor telefonu.');
-                    });
-                };
-
-                const exportToCSV = () => {
-                    const headers = [
-                        'ID Pomiaru', 'Data zapisu', 'Team (Zespół)', 'Tryb pracy', 'Trafostacja', 'Falownik (WR)', 'Identyfikator', 'Długość bębna (m)', 'Metry początkowe', 'Metry końcowe', 'Zużyte (m)', 'Pozostało (m)'
-                    ];
-
-                    let csvContent = '\uFEFF'; 
-                    csvContent += headers.join(';') + '\n';
-
-                    drums.value.forEach((drum) => {
-                        const inv = inverters.value.find(i => i.id === drum.inverterId);
-                        if (inv) {
-                            const row = [
-                                drum.id,
-                                new Date().toLocaleDateString("pl-PL"),
-                                getTeamName(selectedTeamId.value),
-                                'BĘBNY',
-                                `Trafo ${inv.trafoNo}`,
-                                inv.name,
-                                `Bęben`,
-                                drum.totalLength || 0,
-                                drum.startMeter || 0,
-                                drum.endMeter || 0,
-                                calculateDrumUsed(drum),
-                                calculateDrumRemaining(drum)
-                            ];
-                            csvContent += row.join(';') + '\n';
-                        }
-                    });
-
-                    Object.keys(stringsData.value).forEach((key) => {
-                        const [invId, sIdx] = key.split('_');
-                        const inv = inverters.value.find(i => i.id === invId);
-                        const str = stringsData.value[key];
-                        if (inv && str && (str.startMeter !== null || str.endMeter !== null)) {
-                            const row = [
-                                key,
-                                new Date().toLocaleDateString("pl-PL"),
-                                getTeamName(selectedTeamId.value),
-                                'STRINGI',
-                                `Trafo ${inv.trafoNo}`,
-                                inv.name,
-                                `String #${sIdx}`,
-                                0,
-                                str.startMeter || 0,
-                                str.endMeter || 0,
-                                calculateStringUsed(invId, sIdx),
-                                0
-                            ];
-                            csvContent += row.join(';') + '\n';
-                        }
-                    });
-
-                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                    const link = document.createElement('a');
-                    const url = URL.createObjectURL(blob);
-                    
-                    link.setAttribute('href', url);
-                    link.setAttribute('download', `Cable_PV_LokalnyBackup.csv`);
-                    link.style.visibility = 'hidden';
-                    
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    showToast('Eksport ukończony!');
-                };
-
-                onMounted(() => {
-                    checkUrlConfig();
-                    loadSettings();
-                    loadData();
-                    initConnectionListeners();
-
-                    // Bezpiecznik czasowy dla braku sieci
-                    setTimeout(() => {
-                        if (isLoading.value) {
-                            showOfflineFallbackBtn.value = true;
-                        }
-                    }, 6000);
-
-                    fetchCloudData();
-                });
-
-                return {
-                    currentView,
-                    selectedTeamId,
-                    selectedInverterId,
-                    selectedTrafoFilter,
-                    googleWebAppUrl,
-                    googleSheetEmbedUrl,
-                    isOnline,
-                    pendingSyncQueue,
-                    globalWorkMode,
-                    stringsCountPerInverter,
-                    teams,
-                    trafos,
-                    inverters,
-                    drums,
-                    stringsData,
-                    batchSyncStatus,
-                    toast,
-                    isLoading,
-                    isFetchingUpdate,
-                    showOfflineFallbackBtn,
-                    filteredInverters,
-                    filteredDrums,
-                    getTeamName,
-                    getInverterName,
-                    getInverterTrafoNo,
-                    calculateDrumUsed,
-                    calculateDrumRemaining,
-                    getStringData,
-                    getStringStatus,
-                    calculateStringUsed,
-                    calculateInverterTotalUsed,
-                    safeSetView,
-                    selectTeam,
-                    selectInverter,
-                    addNewDrum,
-                    deleteDrum,
-                    saveDrums,
-                    saveStrings,
-                    saveSettings,
-                    exportToCSV,
-                    syncInverterBatch,
-                    fetchCloudData,
-                    useOfflineBackup,
-                    generateShareLink,
-                    
-                    showUnsavedWarningModal,
-                    safeSetTeamId,
-                    safeSetInverterId,
-                    discardChangesAndNavigate
-                };
+                }
             }
-        }).mount('#app');
+
+            state.unsavedChanges = false;
+            setStep('monter-form');
+        }
+
+        // SCREEN 3: Installer Form View
+        function renderMonterFormView(container) {
+            const wr = state.selectedInverter;
+            const mode = state.config.workMode;
+            const rows = state.localFormCache[wr] || [];
+            
+            let formRowsHtml = '';
+
+            if (mode === 'Bębny') {
+                rows.forEach((row, idx) => {
+                    formRowsHtml += `
+                        <div class="p-4 bg-dark-800 border border-dark-700 rounded-2xl space-y-3 relative">
+                            <!-- Header Row with delete button for extra items -->
+                            <div class="flex justify-between items-center pb-2 border-b border-dark-700/50">
+                                <span class="font-extrabold text-xs text-neon-500 tracking-wider">${row.nr.toUpperCase()}</span>
+                                ${rows.length > 1 ? `
+                                    <button onclick="removeFormRow(${idx})" class="text-red-400 hover:text-red-500 text-xs">
+                                        <i class="fa-solid fa-trash-can mr-1"></i> Usuń bęben
+                                    </button>
+                                ` : ''}
+                            </div>
+                            
+                            <!-- Input Fields Grid -->
+                            <div class="grid grid-cols-3 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Długość Całk. (M)</label>
+                                    <input type="number" step="any" oninput="updateRowCalc(${idx}, 'totalLen', this.value)" value="${row.totalLen}" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2 py-2.5 text-center text-sm text-white font-extrabold focus:outline-none focus:border-neon-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Start (M)</label>
+                                    <input type="number" step="any" oninput="updateRowCalc(${idx}, 'start', this.value)" value="${row.start}" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2 py-2.5 text-center text-sm text-white font-extrabold focus:outline-none focus:border-neon-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Koniec (M)</label>
+                                    <input type="number" step="any" oninput="updateRowCalc(${idx}, 'end', this.value)" value="${row.end}" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2 py-2.5 text-center text-sm text-white font-extrabold focus:outline-none focus:border-neon-500">
+                                </div>
+                            </div>
+
+                            <!-- Automatic results visualizer -->
+                            <div class="grid grid-cols-2 gap-2 pt-2 text-xs bg-dark-900/50 p-3 rounded-xl">
+                                <div>
+                                    <span class="text-gray-400 text-[10px] uppercase">Zużycie kabla:</span>
+                                    <p class="font-black text-white text-sm mt-0.5"><span id="row-usage-${idx}">${row.usage.toFixed(1)}</span> <span class="text-[10px] text-neon-500">m</span></p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-gray-400 text-[10px] uppercase">Zapas na bębnie:</span>
+                                    <p class="font-black text-white text-sm mt-0.5"><span id="row-rem-${idx}">${row.remaining.toFixed(1)}</span> <span class="text-[10px] text-neon-500">m</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                // TRYB STRINGI (Uproszczony)
+                rows.forEach((row, idx) => {
+                    formRowsHtml += `
+                        <div class="p-4 bg-dark-800 border border-dark-700 rounded-2xl space-y-3 relative">
+                            <!-- Header Row with delete button for extra items -->
+                            <div class="flex justify-between items-center pb-2 border-b border-dark-700/50">
+                                <span class="font-extrabold text-xs text-neon-500 tracking-wider">${row.nr.toUpperCase()}</span>
+                                ${rows.length > 1 ? `
+                                    <button onclick="removeFormRow(${idx})" class="text-red-400 hover:text-red-500 text-xs">
+                                        <i class="fa-solid fa-trash-can mr-1"></i> Usuń string
+                                    </button>
+                                ` : ''}
+                            </div>
+                            
+                            <!-- Input Fields Grid -->
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Start (M)</label>
+                                    <input type="number" step="any" oninput="updateRowCalc(${idx}, 'start', this.value)" value="${row.start}" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2 py-2.5 text-center text-sm text-white font-extrabold focus:outline-none focus:border-neon-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Koniec (M)</label>
+                                    <input type="number" step="any" oninput="updateRowCalc(${idx}, 'end', this.value)" value="${row.end}" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2 py-2.5 text-center text-sm text-white font-extrabold focus:outline-none focus:border-neon-500">
+                                </div>
+                            </div>
+
+                            <!-- Automatic results visualizer -->
+                            <div class="pt-1 text-xs bg-dark-900/50 p-3 rounded-xl flex justify-between items-center">
+                                <span class="text-gray-400 text-[10px] uppercase">Zużycie kabla:</span>
+                                <p class="font-black text-white text-base"><span id="row-usage-${idx}">${row.usage.toFixed(1)}</span> <span class="text-[10px] text-neon-500">m</span></p>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <!-- Navigation / Back Button -->
+                    <div class="flex items-center justify-between">
+                        <button onclick="goBackToInverters()" class="flex items-center space-x-1.5 text-xs text-gray-400 hover:text-white transition-all bg-dark-800 px-3 py-1.5 rounded-lg border border-dark-700">
+                            <i class="fa-solid fa-chevron-left"></i>
+                            <span>Powrót</span>
+                        </button>
+                        <span class="text-xs font-bold text-gray-300">FALOWNIK: <span class="text-neon-500">${wr}</span></span>
+                    </div>
+
+                    <!-- Mode Info Badge -->
+                    <div class="p-3 bg-neon-500/10 border border-neon-500/20 rounded-xl flex items-center justify-between text-xs">
+                        <span class="text-gray-300">Aktualny tryb: <span class="text-neon-500 font-extrabold uppercase">${mode}</span></span>
+                        <i class="fa-solid fa-sliders text-neon-500"></i>
+                    </div>
+
+                    <!-- Dynamic form rows container -->
+                    <div class="space-y-4">
+                        ${formRowsHtml}
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col space-y-2 pt-4">
+                        <button onclick="addNewFormRow()" class="w-full py-3 bg-dark-800 border-2 border-dashed border-dark-600 text-gray-300 rounded-2xl hover:border-neon-500 hover:text-white transition-all font-bold text-xs">
+                            <i class="fa-solid fa-plus mr-1"></i> Dodaj kolejny ${mode === 'Bębny' ? 'Bęben' : 'String'}
+                        </button>
+                        
+                        <button onclick="saveAndSendMeters()" class="w-full py-4 bg-neon-500 text-dark-900 font-extrabold rounded-2xl text-sm shadow-neon-glow hover:bg-neon-600 transition-all flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-paper-plane text-base"></i>
+                            <span>ZAPISZ I WYŚLIJ</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Form live changes update
+        function updateRowCalc(index, field, value) {
+            state.unsavedChanges = true;
+            const rows = state.localFormCache[state.selectedInverter];
+            if (!rows || !rows[index]) return;
+
+            const parsedVal = parseFloat(value) || 0;
+            rows[index][field] = parsedVal;
+
+            // Math logic
+            const absDiff = Math.abs(rows[index].start - rows[index].end);
+            rows[index].usage = absDiff;
+
+            if (state.config.workMode === 'Bębny') {
+                if (rows[index].totalLen === 0) {
+                    rows[index].remaining = 0;
+                } else {
+                    rows[index].remaining = rows[index].totalLen - absDiff;
+                }
+                
+                // Live DOM rendering updates to avoid redrawing input values & resets
+                document.getElementById(`row-usage-${index}`).innerText = absDiff.toFixed(1);
+                document.getElementById(`row-rem-${index}`).innerText = rows[index].remaining.toFixed(1);
+            } else {
+                document.getElementById(`row-usage-${index}`).innerText = absDiff.toFixed(1);
+            }
+        }
+
+        // Row operations
+        function addNewFormRow() {
+            state.unsavedChanges = true;
+            const rows = state.localFormCache[state.selectedInverter];
+            const mode = state.config.workMode;
+            const nextIdx = rows.length + 1;
+
+            if (mode === 'Bębny') {
+                rows.push({
+                    nr: `BĘBEN #${nextIdx}`,
+                    totalLen: 500,
+                    start: 0,
+                    end: 0,
+                    usage: 0,
+                    remaining: 0
+                });
+            } else {
+                rows.push({
+                    nr: `STRING #${nextIdx}`,
+                    start: 0,
+                    end: 0,
+                    usage: 0
+                });
+            }
+            renderMonterFormView(document.getElementById('app-view'));
+        }
+
+        function removeFormRow(idx) {
+            state.unsavedChanges = true;
+            const rows = state.localFormCache[state.selectedInverter];
+            if (rows.length > 1) {
+                rows.splice(idx, 1);
+                // Renumber elements dynamically
+                const mode = state.config.workMode;
+                rows.forEach((row, i) => {
+                    row.nr = mode === 'Bębny' ? `BĘBEN #${i + 1}` : `STRING #${i + 1}`;
+                });
+                renderMonterFormView(document.getElementById('app-view'));
+            }
+        }
+
+        // Handle unsaved modifications modal warnings
+        function goBackToInverters() {
+            if (state.unsavedChanges) {
+                // Display custom warning modal
+                const modal = document.getElementById('warning-modal');
+                modal.classList.remove('hidden');
+                
+                document.getElementById('warning-stay-btn').onclick = function() {
+                    modal.classList.add('hidden');
+                    saveAndSendMeters();
+                };
+
+                document.getElementById('warning-discard-btn').onclick = function() {
+                    modal.classList.add('hidden');
+                    // Reset cache for this inverter to cancel inputs
+                    delete state.localFormCache[state.selectedInverter];
+                    state.unsavedChanges = false;
+                    setStep('inverters');
+                };
+            } else {
+                setStep('inverters');
+            }
+        }
+
+        // Upload & Save to Google Sheets
+        async function saveAndSendMeters() {
+            if (!state.gasUrl) {
+                showToast("Brak URL skryptu Google. Przejdź do ustawień.", true);
+                openSettingsModal();
+                return;
+            }
+
+            const wr = state.selectedInverter;
+            const rows = state.localFormCache[wr];
+            if (!rows) return;
+
+            setLoader(true, "Wysyłanie pomiarów...");
+
+            // Construct rows formatted for Google Sheets schema:
+            // ID | Data_Wpisu | Team | Trafostacja | Falownik_WR | Numer_Bębna_Stringu | Dlugosc_Bebna | Odczyt_Start | Odczyt_Koniec | Zuzycie | Zapas
+            const entriesToSend = rows.map(r => {
+                const trafoName = `Trafo ${wr.split(' ')[1].split('.')[0]}`;
+                return {
+                    ID: r.dbId || `ID-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                    Data_Wpisu: new Date().toISOString(),
+                    Team: state.selectedTeam,
+                    Trafostacja: trafoName,
+                    Falownik_WR: wr,
+                    Numer_Bębna_Stringu: r.nr,
+                    Dlugosc_Bebna: r.totalLen || 0,
+                    Odczyt_Start: r.start,
+                    Odczyt_Koniec: r.end,
+                    Zuzycie: r.usage,
+                    Zapas: r.remaining || 0
+                };
+            });
+
+            try {
+                const response = await fetch(state.gasUrl, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8', // Bypass preflight standard CORS
+                    },
+                    body: JSON.stringify({
+                        action: 'saveMeters',
+                        selectedInverter: wr,
+                        data: entriesToSend
+                    })
+                });
+
+                if (!response.ok) throw new Error("Błąd przesyłania danych.");
+                const result = await response.json();
+
+                if (result.status === "success") {
+                    showToast("Pomiary zostały zapisane w chmurze!");
+                    state.unsavedChanges = false;
+                    // Trigger refresh to update the entire memory state
+                    await fetchCloudData();
+                    setStep('inverters');
+                } else {
+                    throw new Error(result.message || "Błąd zapisu");
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("Błąd wysyłania. Dane zapisano tymczasowo lokalnie.", true);
+                // Keep local cache offline, allows going back and re-trying later
+                state.unsavedChanges = false;
+                setStep('inverters');
+            } finally {
+                setLoader(false);
+            }
+        }
+
+        // SETTINGS & CONFIG MODAL FUNCTIONS
+        function openSettingsModal() {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.add('opacity-100'), 10);
+
+            // Populate current values
+            document.getElementById('setting-gas-url').value = state.gasUrl;
+            document.getElementById('setting-work-mode').value = state.config.workMode;
+            document.getElementById('setting-teams-count').value = state.config.teamsCount;
+
+            // Render Trafo inputs mapping
+            renderTrafosMappingInputs();
+        }
+
+        function closeSettingsModal() {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.remove('opacity-100');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function renderTrafosMappingInputs() {
+            const container = document.getElementById('trafos-mapping-inputs');
+            container.innerHTML = '';
+            
+            // Generate input per Trafo (we can add up to 4 easily in UI)
+            const trafoCount = Object.keys(state.config.trafos).length;
+            
+            Object.entries(state.config.trafos).forEach(([trafoName, limit], index) => {
+                container.innerHTML += `
+                    <div>
+                        <label class="block text-[10px] text-gray-400 uppercase">${trafoName}</label>
+                        <input type="number" id="setting-trafo-${index + 1}" min="1" max="24" value="${limit}" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2 py-1.5 text-center text-xs text-white font-bold focus:outline-none focus:border-neon-500">
+                    </div>
+                `;
+            });
+        }
+
+        async function saveLocalSettings() {
+            const gasUrlInput = document.getElementById('setting-gas-url').value.trim();
+            const workModeInput = document.getElementById('setting-work-mode').value;
+            const teamsCountInput = parseInt(document.getElementById('setting-teams-count').value) || 2;
+
+            // Update state
+            state.gasUrl = gasUrlInput;
+            localStorage.setItem('dc_cable_gas_url', gasUrlInput);
+
+            // Parse trafo counts dynamically
+            const trafos = {};
+            const trafo1Limit = parseInt(document.getElementById('setting-trafo-1')?.value) || 12;
+            const trafo2Limit = parseInt(document.getElementById('setting-trafo-2')?.value) || 12;
+            
+            trafos["Trafo 1"] = trafo1Limit;
+            trafos["Trafo 2"] = trafo2Limit;
+
+            state.config = {
+                workMode: workModeInput,
+                teamsCount: teamsCountInput,
+                trafos: trafos,
+                stringsCount: 12 // Default standard strings count limit
+            };
+
+            saveState();
+
+            // Try sending the settings update to Google Apps Script configuration if URL exists
+            if (state.gasUrl) {
+                setLoader(true, "Zapisywanie w chmurze...");
+                try {
+                    const response = await fetch(state.gasUrl, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            action: 'saveConfig',
+                            config: state.config
+                        })
+                    });
+                    if (!response.ok) throw new Error("Błąd zapisu serwera.");
+                    showToast("Ustawienia zapisane lokalnie i w chmurze!");
+                } catch (e) {
+                    showToast("Zapisano tylko lokalnie (Brak połączenia z chmurą).", true);
+                } finally {
+                    setLoader(false);
+                }
+            } else {
+                showToast("Ustawienia zapisane lokalnie.");
+            }
+
+            closeSettingsModal();
+            updateAppLayout();
+        }
+
+        // FACTORY RESET HANDLERS
+        function confirmFactoryReset() {
+            closeSettingsModal();
+            document.getElementById('reset-modal').classList.remove('hidden');
+        }
+
+        function closeResetModal() {
+            document.getElementById('reset-modal').classList.add('hidden');
+        }
+
+        async function executeFactoryReset() {
+            closeResetModal();
+            setLoader(true, "Przywracanie ustawień fabrycznych...");
+
+            if (state.gasUrl) {
+                try {
+                    const response = await fetch(state.gasUrl, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            action: 'factoryReset'
+                        })
+                    });
+                    if (!response.ok) throw new Error("Reset serwera nie powiódł się.");
+                } catch (e) {
+                    console.error("Factory reset failed over cloud:", e);
+                    showToast("Brak połączenia z chmurą. Wykonano lokalny reset.", true);
+                }
+            }
+
+            // Restore defaults locally
+            localStorage.clear();
+            state = {
+                gasUrl: DEFAULTS.gasUrl,
+                config: DEFAULTS.config,
+                savedMeters: [],
+                activeStep: 'teams',
+                selectedTeam: null,
+                selectedTrafoFilter: 'Wszystkie',
+                selectedInverter: null,
+                unsavedChanges: false,
+                localFormCache: {}
+            };
+            
+            saveState();
+            showToast("Przywrócono konfigurację fabryczną systemu.");
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+
+        // INITIALIZATION
+        window.onload = function() {
+            // First load from memory
+            updateAppLayout();
+            // Automatically try refreshing cloud database
+            if (state.gasUrl) {
+                fetchCloudData();
+            } else {
+                showToast("Aplikacja gotowa do pracy offline. Skonfiguruj URL API.");
+            }
+        };
     </script>
 </body>
 </html>
