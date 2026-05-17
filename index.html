@@ -80,7 +80,7 @@
       </button>
       <!-- Settings Button -->
       <button onclick="openSettingsModal()" class="touch-target p-2 text-zinc-400 hover:text-emerald-400 transition-colors rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700" title="Ustawienia">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
       </button>
     </div>
   </header>
@@ -125,8 +125,21 @@
         <h2 class="text-xl font-extrabold text-zinc-100 tracking-tight">KROK 1: Wybór Zespołu</h2>
         <p class="text-xs text-zinc-400 mt-1">Wybierz swój zespół, aby rozpocząć ewidencjonowanie pomiarów kabli</p>
       </div>
+      
       <div id="team-list-container" class="grid grid-cols-1 gap-3">
         <!-- Zespoły renderowane dynamicznie -->
+      </div>
+
+      <!-- SYSTEM RAPORTÓW DZIENNYCH -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 mt-6 shadow-xl">
+        <h3 class="text-xs font-black text-emerald-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+          Dzienny Raport Zużycia Kabla
+        </h3>
+        <p class="text-[11px] text-zinc-400 mb-4">Poniższe zestawienie pokazuje sumaryczne zużycie w podziale na dni robocze dla każdego zespołu.</p>
+        <div id="daily-reports-container" class="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+          <!-- Raport dzienny generowany dynamicznie -->
+        </div>
       </div>
     </section>
 
@@ -153,7 +166,7 @@
 
       <!-- FILTR TRAFO -->
       <div>
-        <span class="text-xs text-zinc-400 font-bold uppercase tracking-wider mb-2 block">Filtr Trafostacji</span>
+        <span class="text-xs text-zinc-400 font-bold uppercase tracking-wider mb-2 block">Filtr Trafostacji (Zużycie)</span>
         <div id="trafo-filter-container" class="flex flex-wrap gap-2 overflow-x-auto pb-1">
           <!-- Przyciski filtrów renderowane dynamicznie -->
         </div>
@@ -264,7 +277,7 @@
     <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 max-w-md w-full shadow-2xl space-y-4">
       <div class="flex items-center justify-between pb-2 border-b border-zinc-800">
         <h3 class="text-sm font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-1.5">
-          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
           Ustawienia Systemowe
         </h3>
         <button onclick="closeSettingsModal()" class="touch-target text-zinc-400 hover:text-zinc-100">
@@ -295,7 +308,7 @@
 
   <!-- STOPKA -->
   <footer class="mt-auto py-4 border-t border-zinc-900 bg-zinc-950/80 px-4 text-center">
-    <p class="text-[10px] text-zinc-600">PV Cable Tracker SPA v2.1.0 • System Ewidencji Zużycia Okablowania Solarnego</p>
+    <p class="text-[10px] text-zinc-600">PV Cable Tracker SPA v2.2.0 • System Ewidencji Zużycia Okablowania Solarnego</p>
   </footer>
 
   <!-- CORE SYSTEM JAVASCRIPT -->
@@ -355,6 +368,7 @@
       if (!state.selectedTeam) {
         showView('view-step-team');
         renderTeamSelection();
+        renderDailyReports();
       } else if (!state.selectedInverter) {
         showView('view-step-inverters');
         renderInverterSelection();
@@ -373,6 +387,104 @@
         } else {
           element.classList.add('hidden');
         }
+      });
+    }
+
+    // POMOCNIK FORMATOWANIA DATY (Rozpoznaje format lokalny PL oraz ISO)
+    function getCleanDateString(dateVal) {
+      if (!dateVal) return "Brak daty";
+      
+      // Jeśli to jest obiekt Date
+      let d = new Date(dateVal);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString("pl-PL");
+      }
+      
+      // Dopasowanie do formatu "17.05.2026, 12:34:56"
+      const match = String(dateVal).match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+      if (match) {
+        return `${match[1].padStart(2, '0')}.${match[2].padStart(2, '0')}.${match[3]}`;
+      }
+      
+      // Dopasowanie do formatu ISO "2026-05-17"
+      const isoMatch = String(dateVal).match(/(\d{4})-(\d{2})-(\d{2})/);
+      if (isoMatch) {
+        return `${isoMatch[3]}.${isoMatch[2]}.${isoMatch[1]}`;
+      }
+      
+      return String(dateVal).split(',')[0];
+    }
+
+    // GENEROWANIE DZIENNEGO RAPORTU ZUŻYCIA
+    function renderDailyReports() {
+      const container = document.getElementById('daily-reports-container');
+      container.innerHTML = "";
+
+      // Grupowanie danych: { "17.05.2026": { "Team 1": 449.00, "Team 2": 541.00 } }
+      const report = {};
+      state.meters.forEach(entry => {
+        const dateStr = getCleanDateString(entry.Data_Wpisu);
+        const team = entry.Team || "Brak Zespołu";
+        const zuzycie = parseFloat(entry.Zuzycie) || 0;
+
+        if (zuzycie <= 0) return; // Pomijamy puste wpisy
+
+        if (!report[dateStr]) {
+          report[dateStr] = {};
+        }
+        if (!report[dateStr][team]) {
+          report[dateStr][team] = 0;
+        }
+        report[dateStr][team] += zuzycie;
+      });
+
+      const dates = Object.keys(report).sort((a, b) => {
+        const partsA = a.split('.');
+        const partsB = b.split('.');
+        if (partsA.length === 3 && partsB.length === 3) {
+          const dA = new Date(partsA[2], partsA[1] - 1, partsA[0]);
+          const dB = new Date(partsB[2], partsB[1] - 1, partsB[0]);
+          return dB - dA; // Nowe daty na górze
+        }
+        return b.localeCompare(a);
+      });
+
+      if (dates.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-6 text-zinc-500 border border-dashed border-zinc-800 rounded-xl">
+            Brak wpisów pomiarowych do wyświetlenia raportu.
+          </div>
+        `;
+        return;
+      }
+
+      dates.forEach(date => {
+        const dateRow = document.createElement('div');
+        dateRow.className = "bg-zinc-950/80 border border-zinc-800/60 rounded-xl p-3 space-y-2";
+
+        let teamBreakdownHTML = "";
+        let totalDailySum = 0;
+
+        Object.entries(report[date]).forEach(([teamName, sum]) => {
+          totalDailySum += sum;
+          teamBreakdownHTML += `
+            <div class="flex justify-between items-center text-[11px] pl-2 border-l-2 border-emerald-500/40">
+              <span class="text-zinc-400 font-semibold">${teamName}</span>
+              <span class="text-emerald-400 font-bold">${sum.toFixed(2)} m</span>
+            </div>
+          `;
+        });
+
+        dateRow.innerHTML = `
+          <div class="flex justify-between items-center pb-1.5 border-b border-zinc-900">
+            <span class="text-xs font-black text-zinc-200">${date}</span>
+            <span class="text-xs font-bold text-zinc-400">Suma: <span class="text-emerald-400 font-black">${totalDailySum.toFixed(2)} m</span></span>
+          </div>
+          <div class="space-y-1.5 pt-1">
+            ${teamBreakdownHTML}
+          </div>
+        `;
+        container.appendChild(dateRow);
       });
     }
 
@@ -431,16 +543,19 @@
       const filterContainer = document.getElementById('trafo-filter-container');
       filterContainer.innerHTML = "";
 
+      // Przycisk "Wszystkie"
       const btnAll = document.createElement('button');
       btnAll.className = `px-3 py-1.5 rounded-full text-xs font-bold transition-all border whitespace-nowrap ${state.selectedTrafoFilter === 'Wszystkie' ? 'bg-emerald-500 text-black border-emerald-500 shadow-neon-glow' : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700'}`;
-      btnAll.innerText = "Wszystkie";
+      btnAll.innerText = `Wszystkie (${calculateGrandTotal().toFixed(2)} m)`;
       btnAll.onclick = () => filterTrafos('Wszystkie');
       filterContainer.appendChild(btnAll);
 
+      // Przyciski konkretnych Trafo (pokazujące sumę dla danego Trafo na żywo)
       Object.keys(state.config.trafos).forEach(trafoName => {
+        const trafoSum = calculateTrafoTotal(trafoName);
         const btn = document.createElement('button');
         btn.className = `px-3 py-1.5 rounded-full text-xs font-bold transition-all border whitespace-nowrap ${state.selectedTrafoFilter === trafoName ? 'bg-emerald-500 text-black border-emerald-500 shadow-neon-glow' : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700'}`;
-        btn.innerText = trafoName;
+        btn.innerText = `${trafoName} (${trafoSum.toFixed(2)} m)`;
         btn.onclick = () => filterTrafos(trafoName);
         filterContainer.appendChild(btn);
       });
@@ -592,7 +707,8 @@
         if (state.config.workMode === "Bębny") {
           itemRow.innerHTML = `
             <div class="flex justify-between items-center pb-2 border-b border-zinc-900">
-              <input type="text" value="${entry.Numer_Bębna_Stringu}" onchange="updateRecordField(${index}, 'Numer_Bębna_Stringu', this.value)" ${state.isEditLocked ? 'disabled' : ''} class="bg-transparent font-bold text-xs text-zinc-100 focus:outline-none focus:border-b focus:border-emerald-500 w-32 uppercase">
+              <!-- Zablokowana możliwość edycji nazwy bębna - wyświetlana jako ładny tekst -->
+              <span class="font-extrabold text-xs text-emerald-400 tracking-wider uppercase">${entry.Numer_Bębna_Stringu}</span>
               ${(state.localEntries.length > 1 && !state.isEditLocked) ? `
                 <button type="button" onclick="removeRecordRow(${index})" class="touch-target text-zinc-500 hover:text-red-400 transition-colors">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
@@ -627,7 +743,8 @@
         } else {
           itemRow.innerHTML = `
             <div class="flex items-center justify-between pb-1">
-              <span class="font-bold text-xs text-zinc-300">${entry.Numer_Bębna_Stringu}</span>
+              <!-- Nazwa stringu zablokowana do edycji -->
+              <span class="font-bold text-xs text-zinc-300 uppercase">${entry.Numer_Bębna_Stringu}</span>
               <div class="flex items-center gap-1">
                 <span class="text-[10px] text-zinc-500">Zużycie:</span>
                 <span id="zuzycie-label-${index}" class="text-xs font-black text-emerald-400">${entry.Zuzycie.toFixed(2)} m</span>
@@ -729,6 +846,17 @@
         .reduce((acc, entry) => acc + (parseFloat(entry.Zuzycie) || 0), 0);
     }
 
+    function calculateTrafoTotal(trafoName) {
+      // Wyciągnięcie samego numeru Trafostacji (np. "Trafo 1" -> "1")
+      const cleanTrafoNum = trafoName.replace(/[^0-9]/g, "");
+      return state.meters
+        .filter(entry => {
+          const entryTrafo = String(entry.Trafostacja).replace(/[^0-9]/g, "");
+          return entryTrafo === cleanTrafoNum;
+        })
+        .reduce((acc, entry) => acc + (parseFloat(entry.Zuzycie) || 0), 0);
+    }
+
     function calculateInverterTotal(inverterName) {
       return state.meters
         .filter(entry => entry.Falownik_WR === inverterName)
@@ -797,6 +925,7 @@
 
       showLoading(true, "Zapisywanie pomiarów...");
 
+      // Rejestracja dokładnej daty zapisu
       const payloadDate = new Date().toLocaleString("pl-PL");
       const mappedPayload = state.localEntries.map(e => ({
         ...e,
