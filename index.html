@@ -601,27 +601,61 @@
       const existing = state.meters.filter(m => m.Falownik_WR === inverterName);
       state.localEntries = [];
 
-      if (existing.length > 0) {
-        state.localEntries = existing.map(e => ({
-          ID: e.ID,
-          Data_Wpisu: e.Data_Wpisu,
-          Team: e.Team,
-          Trafostacja: e.Trafostacja,
-          Falownik_WR: e.Falownik_WR,
-          Numer_Bębna_Stringu: e.Numer_Bębna_Stringu,
-          Dlugosc_Bebna: parseFloat(e.Dlugosc_Bebna) || 0,
-          Odczyt_Start: parseFloat(e.Odczyt_Start) || 0,
-          Odczyt_Koniec: parseFloat(e.Odczyt_Koniec) || 0,
-          Zuzycie: parseFloat(e.Zuzycie) || 0,
-          Zapas: parseFloat(e.Zapas) || 0
-        }));
-      } else {
-        if (state.config.workMode === "Bębny") {
-          state.localEntries.push(createEmptyRecord("Bęben #1", 500));
+      if (state.config.workMode === "Bębny") {
+        if (existing.length > 0) {
+          state.localEntries = existing.map(e => ({
+            ID: e.ID,
+            Data_Wpisu: e.Data_Wpisu,
+            Team: e.Team,
+            Trafostacja: e.Trafostacja,
+            Falownik_WR: e.Falownik_WR,
+            Numer_Bębna_Stringu: e.Numer_Bębna_Stringu,
+            Dlugosc_Bebna: parseFloat(e.Dlugosc_Bebna) || 0,
+            Odczyt_Start: parseFloat(e.Odczyt_Start) || 0,
+            Odczyt_Koniec: parseFloat(e.Odczyt_Koniec) || 0,
+            Zuzycie: parseFloat(e.Zuzycie) || 0,
+            Zapas: parseFloat(e.Zapas) || 0
+          }));
         } else {
-          const strCount = state.config.stringsCount || 12;
-          for (let s = 1; s <= strCount; s++) {
-            state.localEntries.push(createEmptyRecord(`String #${s}`, 0));
+          state.localEntries.push(createEmptyRecord("Bęben #1", 500));
+        }
+      } else {
+        // TRYB STRINGÓW - Zawsze generuj pełną pulę stringów z konfiguracji
+        const strCount = state.config.stringsCount || 12;
+        for (let s = 1; s <= strCount; s++) {
+          const label = `String #${s}`;
+          const found = existing.find(e => e.Numer_Bębna_Stringu === label);
+          
+          if (found) {
+            // Istniejący zapis w bazie danych (ładujemy go)
+            state.localEntries.push({
+              ID: found.ID,
+              Data_Wpisu: found.Data_Wpisu,
+              Team: found.Team,
+              Trafostacja: found.Trafostacja,
+              Falownik_WR: found.Falownik_WR,
+              Numer_Bębna_Stringu: found.Numer_Bębna_Stringu,
+              Dlugosc_Bebna: parseFloat(found.Dlugosc_Bebna) || 0,
+              Odczyt_Start: parseFloat(found.Odczyt_Start) || 0,
+              Odczyt_Koniec: parseFloat(found.Odczyt_Koniec) || 0,
+              Zuzycie: parseFloat(found.Zuzycie) || 0,
+              Zapas: parseFloat(found.Zapas) || 0
+            });
+          } else {
+            // Brak zapisu - pusta karta gotowa do edycji
+            state.localEntries.push({
+              ID: generateUUID(),
+              Data_Wpisu: new Date().toISOString(),
+              Team: "", // Pusty team, zostanie nadany dopiero przy edycji
+              Trafostacja: state.activeTrafo.replace("Trafo ", ""),
+              Falownik_WR: state.selectedInverter,
+              Numer_Bębna_Stringu: label,
+              Dlugosc_Bebna: 0,
+              Odczyt_Start: 0,
+              Odczyt_Koniec: 0,
+              Zuzycie: 0,
+              Zapas: 0
+            });
           }
         }
       }
@@ -654,9 +688,9 @@
       const liveSum = calculateInverterLiveTotal();
       document.getElementById('inverter-live-total').innerText = `${liveSum.toFixed(2)} m`;
 
-      // Sprawdzenie, czy istnieją wpisy wpisane przez inny zespół niż aktywny
+      // Sprawdzenie innych zespołów, które mają wprowadzone zużycie
       const otherTeams = [...new Set(state.localEntries
-        .filter(entry => entry.Team && entry.Team !== state.selectedTeam)
+        .filter(entry => entry.Team && entry.Team !== state.selectedTeam && entry.Zuzycie > 0)
         .map(entry => entry.Team)
       )];
 
@@ -689,50 +723,55 @@
 
       state.localEntries.forEach((entry, index) => {
         const itemRow = document.createElement('div');
+        itemRow.id = `record-row-${index}`;
         
-        // Dynamiczne kolorowanie w zależności od zespołu-twórcy
+        const hasConsumption = entry.Zuzycie > 0;
         const isMyTeam = (!entry.Team || entry.Team === state.selectedTeam);
+
         let borderClass = "";
         let headerHTML = "";
 
-        if (isMyTeam) {
+        if (!hasConsumption) {
+          borderClass = "border-zinc-800/80 bg-zinc-950/40 hover:border-zinc-700";
+          headerHTML = `
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-xs text-zinc-300 uppercase">${entry.Numer_Bębna_Stringu}</span>
+            </div>
+          `;
+        } else if (isMyTeam) {
           borderClass = "border-emerald-500/30 bg-zinc-950 hover:border-emerald-500/50";
           headerHTML = `
-            <div class="flex justify-between items-center pb-2 border-b border-zinc-900">
-              <div class="flex items-center gap-2">
-                <span class="font-extrabold text-xs text-emerald-400 tracking-wider uppercase">${entry.Numer_Bębna_Stringu}</span>
-                <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md text-[9px] font-bold">Mój zespół</span>
-              </div>
-              ${(state.localEntries.length > 1) ? `
-                <button type="button" onclick="removeRecordRow(${index})" class="touch-target text-zinc-500 hover:text-red-400 transition-colors">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                </button>
-              ` : ''}
+            <div class="flex items-center gap-2">
+              <span class="font-extrabold text-xs text-emerald-400 tracking-wider uppercase">${entry.Numer_Bębna_Stringu}</span>
+              <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md text-[9px] font-bold">Mój zespół</span>
             </div>
           `;
         } else {
-          // Ramka i styl ostrzegawczy pomarańczowy dla obcych teamów
           borderClass = "border-amber-500/40 bg-amber-950/10 hover:border-amber-500/60 shadow-[0_0_10px_rgba(245,158,11,0.1)]";
           headerHTML = `
-            <div class="flex justify-between items-center pb-2 border-b border-zinc-900/60">
-              <div class="flex items-center gap-2">
-                <span class="font-extrabold text-xs text-amber-400 tracking-wider uppercase">${entry.Numer_Bębna_Stringu}</span>
-                <span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md text-[9px] font-bold">Zapis: ${entry.Team}</span>
-              </div>
-              ${(state.localEntries.length > 1) ? `
-                <button type="button" onclick="removeRecordRow(${index})" class="touch-target text-zinc-500 hover:text-red-400 transition-colors" title="Usuń wpis innego zespołu">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                </button>
-              ` : ''}
+            <div class="flex items-center gap-2">
+              <span class="font-extrabold text-xs text-amber-400 tracking-wider uppercase">${entry.Numer_Bębna_Stringu}</span>
+              <span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md text-[9px] font-bold">Zapis: ${entry.Team}</span>
             </div>
           `;
         }
 
         itemRow.className = `p-3.5 border rounded-xl space-y-3 relative transition-all ${borderClass}`;
 
+        const deleteButtonHTML = (state.config.workMode === "Bębny" && state.localEntries.length > 1) 
+          ? `<button type="button" onclick="removeRecordRow(${index})" class="touch-target text-zinc-500 hover:text-red-400 transition-colors">
+               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+             </button>`
+          : ``;
+
         if (state.config.workMode === "Bębny") {
           itemRow.innerHTML = `
-            ${headerHTML}
+            <div class="flex justify-between items-center pb-2 border-b border-zinc-900" id="record-header-${index}">
+              ${headerHTML}
+            </div>
+            <div class="absolute right-3.5 top-3">
+              ${deleteButtonHTML}
+            </div>
             <div class="grid grid-cols-3 gap-2">
               <div>
                 <label class="text-[9px] text-zinc-500 font-bold block uppercase mb-1">Dł. całkowita (M)</label>
@@ -761,18 +800,8 @@
         } else {
           // Tryb Stringi
           itemRow.innerHTML = `
-            <div class="flex items-center justify-between pb-1 border-b border-zinc-900/60 mb-2">
-              <div class="flex items-center gap-2">
-                <span class="font-bold text-xs text-zinc-300 uppercase">${entry.Numer_Bębna_Stringu}</span>
-                ${isMyTeam 
-                  ? `<span class="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[8px] font-bold">Mój zespół</span>` 
-                  : `<span class="px-1.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded text-[8px] font-bold">Zapis: ${entry.Team}</span>`
-                }
-              </div>
-              <div class="flex items-center gap-1">
-                <span class="text-[10px] text-zinc-500">Zużycie:</span>
-                <span id="zuzycie-label-${index}" class="text-xs font-black text-emerald-400">${entry.Zuzycie.toFixed(2)} m</span>
-              </div>
+            <div class="flex items-center justify-between pb-1 border-b border-zinc-900/60 mb-2" id="record-header-${index}">
+              ${headerHTML}
             </div>
             <div class="grid grid-cols-2 gap-2">
               <div>
@@ -783,6 +812,10 @@
                 <label class="text-[8px] text-zinc-500 font-bold block uppercase mb-1">Koniec (M)</label>
                 <input type="number" step="any" value="${entry.Odczyt_Koniec}" oninput="updateRecordField(${index}, 'Odczyt_Koniec', this.value)" onfocus="this.select()" class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
               </div>
+            </div>
+            <div class="pt-1.5 border-t border-zinc-900/40 text-right">
+              <span class="text-[10px] text-zinc-500">Zużycie stringu:</span>
+              <span id="zuzycie-label-${index}" class="text-xs font-black text-emerald-400 ml-1">${entry.Zuzycie.toFixed(2)} m</span>
             </div>
           `;
         }
@@ -803,6 +836,11 @@
 
       record.Zuzycie = Math.abs(record.Odczyt_Start - record.Odczyt_Koniec);
 
+      // Jeżeli monter wpisuje nową wartość, automatycznie przypisz do jego zespołu
+      if (fieldName === 'Odczyt_Start' || fieldName === 'Odczyt_Koniec' || fieldName === 'Dlugosc_Bebna') {
+        record.Team = state.selectedTeam;
+      }
+
       if (state.config.workMode === "Bębny") {
         if (record.Dlugosc_Bebna === 0) {
           record.Zapas = 0; 
@@ -816,9 +854,11 @@
 
       state.hasUnsavedChanges = true;
 
+      // Natychmiastowe uaktualnienie całkowitej sumy w locie
       const liveSum = calculateInverterLiveTotal();
       document.getElementById('inverter-live-total').innerText = `${liveSum.toFixed(2)} m`;
 
+      // Aktualizacja wartości zużycia i zapasu bez utraty zaznaczenia
       const zuzycieLabel = document.getElementById(`zuzycie-label-${index}`);
       if (zuzycieLabel) {
         zuzycieLabel.innerText = `${record.Zuzycie.toFixed(2)} m`;
@@ -828,11 +868,43 @@
       if (zapasLabel) {
         zapasLabel.innerText = `${record.Zapas.toFixed(2)} m`;
       }
+
+      // Dynamiczna zmiana klas CSS w locie na podstawie nowo wprowadzonego zużycia
+      const rowElement = document.getElementById(`record-row-${index}`);
+      const headerElement = document.getElementById(`record-header-${index}`);
+      if (rowElement && headerElement) {
+        const hasConsumption = record.Zuzycie > 0;
+        const isMyTeam = (!record.Team || record.Team === state.selectedTeam);
+
+        if (!hasConsumption) {
+          rowElement.className = "p-3.5 border rounded-xl space-y-3 relative transition-all border-zinc-800/80 bg-zinc-950/40 hover:border-zinc-700";
+          headerElement.innerHTML = `
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-xs text-zinc-300 uppercase">${record.Numer_Bębna_Stringu}</span>
+            </div>
+          `;
+        } else if (isMyTeam) {
+          rowElement.className = "p-3.5 border rounded-xl space-y-3 relative transition-all border-emerald-500/30 bg-zinc-950 hover:border-emerald-500/50";
+          headerElement.innerHTML = `
+            <div class="flex items-center gap-2">
+              <span class="font-extrabold text-xs text-emerald-400 tracking-wider uppercase">${record.Numer_Bębna_Stringu}</span>
+              <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md text-[9px] font-bold">Mój zespół</span>
+            </div>
+          `;
+        } else {
+          rowElement.className = "p-3.5 border rounded-xl space-y-3 relative transition-all border-amber-500/40 bg-amber-950/10 hover:border-amber-500/60 shadow-[0_0_10px_rgba(245,158,11,0.1)]";
+          headerElement.innerHTML = `
+            <div class="flex items-center gap-2">
+              <span class="font-extrabold text-xs text-amber-400 tracking-wider uppercase">${record.Numer_Bębna_Stringu}</span>
+              <span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md text-[9px] font-bold">Zapis: ${record.Team}</span>
+            </div>
+          `;
+        }
+      }
     }
 
     function addNewRecordRow() {
       const nextNum = state.localEntries.length + 1;
-      // Nowy rekord jest automatycznie przypisany do obecnie zalogowanego zespołu
       state.localEntries.push(createEmptyRecord(`Bęben #${nextNum}`, 500));
       state.hasUnsavedChanges = true;
       renderMonterForm();
@@ -887,9 +959,11 @@
     }
 
     function getInverterTeamOwner(inverterName) {
-      const records = state.meters.filter(m => m.Falownik_WR === inverterName);
-      if (records.length > 0 && records[0].Team) {
-        return records[0].Team;
+      // Pobieraj tylko te ekipy, które mają realne zużycie kabla > 0
+      const records = state.meters.filter(m => m.Falownik_WR === inverterName && (parseFloat(m.Zuzycie) || 0) > 0);
+      if (records.length > 0) {
+        const teams = [...new Set(records.map(r => r.Team))];
+        return teams.join(", ");
       }
       return null;
     }
@@ -945,13 +1019,12 @@
 
       const payloadDate = new Date().toLocaleString("pl-PL");
       
-      // Jeśli modyfikujemy bębny, nowo dodane bębny/stringi mają już ustawiony nasz Team w state.localEntries.
-      // Aby zachować oryginalnego twórcę dla starych rekordów, wysyłamy je z przypisanymi wcześniej Teamami.
-      // Jeżeli zmieniliśmy wartość w starym rekordzie, możemy go opcjonalnie przerejestrować na nasz Team.
-      // Tutaj zachowujemy Team przypisany w obiekcie, co jest najbardziej sprawiedliwe.
-      const mappedPayload = state.localEntries.map(e => ({
+      // FILTRACJA CRITICAL BUGFIX: Przesyłamy tylko i wyłącznie te rekordy, które mają Zużycie > 0!
+      // Nieużywane stringi/bębny o zerowym zużyciu są ignorowane i nie zanieczyszczają bazy danych.
+      const activeEntries = state.localEntries.filter(e => (parseFloat(e.Zuzycie) || 0) > 0);
+
+      const mappedPayload = activeEntries.map(e => ({
         ...e,
-        // Jeżeli rekord nie miał przypisanego zespołu, przypisujemy aktywny
         Team: e.Team || state.selectedTeam,
         Data_Wpisu: payloadDate
       }));
@@ -972,6 +1045,7 @@
       })
       .then(() => {
         state.hasUnsavedChanges = false;
+        // Aktualizacja lokalnego cache'u: wyrzucamy stare wpisy z tego WR i wkładamy nowo zapisane
         state.meters = state.meters.filter(m => m.Falownik_WR !== state.selectedInverter);
         state.meters = state.meters.concat(mappedPayload);
 
