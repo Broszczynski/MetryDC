@@ -27,7 +27,7 @@
     }
   </script>
   <style>
-    /* Premium dark custom scrollbars and form enhancements */
+    /* Custom scrollbars and styling enhancements for Dark Mode */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -47,7 +47,6 @@
       -webkit-appearance: none;
       margin: 0;
     }
-    /* Smooth transitions */
     .fade-in {
       animation: fadeIn 0.3s ease-out forwards;
     }
@@ -55,7 +54,6 @@
       from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    /* Tap target helper */
     .touch-target {
       min-height: 44px;
       min-width: 44px;
@@ -71,7 +69,7 @@
       <h1 class="text-sm md:text-base font-bold tracking-wider text-emerald-400">PV CABLE TRACKER</h1>
     </div>
     <div class="flex items-center space-x-2">
-      <!-- Network status badge -->
+      <!-- Network Status Badge -->
       <span id="network-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 border border-zinc-700 flex items-center gap-1">
         <span class="w-1.5 h-1.5 rounded-full bg-zinc-500" id="network-dot"></span>
         <span id="network-text">Offline</span>
@@ -128,7 +126,7 @@
         <p class="text-xs text-zinc-400 mt-1">Wybierz swój zespół, aby rozpocząć ewidencjonowanie pomiarów kabli</p>
       </div>
       <div id="team-list-container" class="grid grid-cols-1 gap-3">
-        <!-- Dynamic teams rendered here -->
+        <!-- Zespoły renderowane dynamicznie -->
       </div>
     </section>
 
@@ -136,7 +134,7 @@
     <!-- SCREEN 2: INVERTER SELECTION (KROK 2) -->
     <!-- ======================================================= -->
     <section id="view-step-inverters" class="fade-in space-y-4 hidden">
-      <!-- Back to step 1 button -->
+      <!-- Przycisk powrotu do Kroku 1 -->
       <button onclick="goBackToStep1()" class="touch-target flex items-center space-x-1.5 text-zinc-400 hover:text-emerald-400 text-sm font-semibold transition-colors">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
         <span>Wróć do Zespołów</span>
@@ -153,22 +151,22 @@
         </div>
       </div>
 
-      <!-- TRAFO FILTER TABS -->
+      <!-- FILTR TRAFO -->
       <div>
         <span class="text-xs text-zinc-400 font-bold uppercase tracking-wider mb-2 block">Filtr Trafostacji</span>
         <div id="trafo-filter-container" class="flex flex-wrap gap-2 overflow-x-auto pb-1">
-          <!-- Filter buttons rendered dynamically -->
+          <!-- Przyciski filtrów renderowane dynamicznie -->
         </div>
       </div>
 
-      <!-- INVERTER LIST -->
+      <!-- LISTA INWERTERÓW -->
       <div class="space-y-2">
         <div class="flex justify-between items-center">
           <span class="text-xs text-zinc-400 font-bold uppercase tracking-wider">Wybór Falownika (WR)</span>
           <span class="text-[11px] text-zinc-500 font-medium">Kliknij kafelek, aby przejść do pomiarów</span>
         </div>
         <div id="inverters-list-container" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <!-- Inverters rendered dynamically -->
+          <!-- Inwertery renderowane dynamicznie -->
         </div>
       </div>
     </section>
@@ -177,7 +175,7 @@
     <!-- SCREEN 3: MONTER INPUT FORM (KROK 3) -->
     <!-- ======================================================= -->
     <section id="view-step-monter-form" class="fade-in space-y-4 hidden">
-      <!-- Navigation controls -->
+      <!-- Nawigacja wstecz -->
       <div class="flex items-center justify-between">
         <button onclick="handleBackFromForm()" class="touch-target flex items-center space-x-1.5 text-zinc-400 hover:text-emerald-400 text-sm font-semibold transition-colors">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -188,7 +186,7 @@
         </span>
       </div>
 
-      <!-- Lock Indicator Badge -->
+      <!-- Blokada edycji dla innych zespołów -->
       <div id="lock-warning-badge" class="hidden bg-red-950/80 border border-red-500/30 text-red-200 rounded-xl p-3 flex items-start gap-2.5">
         <svg class="w-5 h-5 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
         <div>
@@ -197,7 +195,7 @@
         </div>
       </div>
 
-      <!-- Live sum cards -->
+      <!-- Podsumowania na żywo -->
       <div class="grid grid-cols-2 gap-3">
         <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-3 flex flex-col justify-between">
           <span class="text-[10px] text-zinc-400 uppercase tracking-wide">Suma Falownika WR</span>
@@ -209,19 +207,19 @@
         </div>
       </div>
 
-      <!-- FORM FIELDS CONTAINER -->
+      <!-- FORMULARZ POMIAROWY -->
       <div id="monter-fields-card" class="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 shadow-xl">
         <h3 class="text-sm font-bold text-zinc-200 mb-4 pb-2 border-b border-zinc-800 flex items-center justify-between">
           <span>Wpisy Pomiarowe</span>
           <span id="form-mode-title" class="text-xs text-zinc-500 uppercase tracking-wider">Tryb Bębnów</span>
         </h3>
 
-        <!-- Dynamic list of drum/string input rows -->
+        <!-- Dynamiczna lista wierszy pomiarów -->
         <div id="records-list" class="space-y-4 max-h-[400px] overflow-y-auto pr-1">
-          <!-- Form rows rendered dynamically -->
+          <!-- Generowane dynamicznie -->
         </div>
 
-        <!-- Add Item Row (Only for drums mode or if we dynamic addition is allowed) -->
+        <!-- Dodawanie bębna -->
         <div class="mt-4 pt-4 border-t border-zinc-800 flex justify-between items-center" id="form-actions-row">
           <button type="button" onclick="addNewRecordRow()" id="btn-add-row" class="touch-target px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-emerald-400 hover:text-emerald-300 border border-zinc-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -231,7 +229,7 @@
         </div>
       </div>
 
-      <!-- Action Footer -->
+      <!-- Akcje zapisu -->
       <div class="pt-2">
         <button id="btn-save-send" onclick="submitMetersToServer()" class="touch-target w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold rounded-xl shadow-neon-glow hover:shadow-neon-glow-lg transition-all flex items-center justify-center gap-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V3"></path></svg>
@@ -242,9 +240,7 @@
 
   </main>
 
-  <!-- ======================================================= -->
-  <!-- MODAL: WARNING & UNSAVED ALERTS -->
-  <!-- ======================================================= -->
+  <!-- MODAL: OSTRZEŻENIE O BRAKU SYNCHRONIZACJI -->
   <div id="custom-warning-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all duration-300 hidden">
     <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 max-w-sm w-full shadow-2xl space-y-4">
       <div class="flex items-center space-x-3 text-amber-400">
@@ -263,14 +259,12 @@
     </div>
   </div>
 
-  <!-- ======================================================= -->
-  <!-- MODAL: CONFIGURATION & FACTORY RESET -->
-  <!-- ======================================================= -->
+  <!-- MODAL: USTAWIENIA I FACTORY RESET -->
   <div id="settings-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all duration-300 hidden">
     <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 max-w-md w-full shadow-2xl space-y-4">
       <div class="flex items-center justify-between pb-2 border-b border-zinc-800">
         <h3 class="text-sm font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-1.5">
-          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
           Ustawienia Systemowe
         </h3>
         <button onclick="closeSettingsModal()" class="touch-target text-zinc-400 hover:text-zinc-100">
@@ -285,7 +279,7 @@
         <p class="text-[10px] text-zinc-500">Wklej pełny URL aplikacji sieciowej wdrożonej w edytorze skryptów Arkusza.</p>
       </div>
 
-      <!-- Settings notification message -->
+      <!-- Komunikat powiadomień ustawień -->
       <div id="settings-msg" class="hidden text-[11px] p-2 rounded-lg"></div>
 
       <div class="grid grid-cols-2 gap-3 pt-2">
@@ -299,14 +293,13 @@
     </div>
   </div>
 
-  <!-- FOOTER -->
+  <!-- STOPKA -->
   <footer class="mt-auto py-4 border-t border-zinc-900 bg-zinc-950/80 px-4 text-center">
     <p class="text-[10px] text-zinc-600">PV Cable Tracker SPA v2.1.0 • System Ewidencji Zużycia Okablowania Solarnego</p>
   </footer>
 
-  <!-- CORE APP ENGINE (JAVASCRIPT) -->
+  <!-- CORE SYSTEM JAVASCRIPT -->
   <script>
-    // State management variables
     let state = {
       apiUrl: localStorage.getItem('pv_cable_tracker_api_url') || '',
       config: {
@@ -315,23 +308,20 @@
         trafos: { "Trafo 1": 12, "Trafo 2": 12 },
         stringsCount: 12
       },
-      meters: [], // Full record base from backend
+      meters: [], 
       selectedTeam: "",
       selectedTrafoFilter: "Wszystkie",
       selectedInverter: "",
-      localEntries: [], // Current editor rows for chosen inverter
+      localEntries: [], 
       hasUnsavedChanges: false,
       isEditLocked: false
     };
 
-    // Initialize application on load
     window.onload = function() {
-      // Setup network listeners
       updateNetworkStatus();
       window.addEventListener('online', updateNetworkStatus);
       window.addEventListener('offline', updateNetworkStatus);
 
-      // Initial render check
       if (!state.apiUrl) {
         showStatusMessage("Aby rozpocząć, wejdź w ustawienia (ikona koła zębatego) i wklej poprawny adres URL skryptu Google.", "error");
         openSettingsModal();
@@ -341,7 +331,6 @@
       renderApp();
     };
 
-    // Update internet connection UI element
     function updateNetworkStatus() {
       const dot = document.getElementById('network-dot');
       const text = document.getElementById('network-text');
@@ -358,14 +347,11 @@
       }
     }
 
-    // Dynamic UI router/render logic
     function renderApp() {
-      // Set global counters
       const grandTotal = calculateGrandTotal();
       document.getElementById('kpi-grand-total').innerHTML = `${grandTotal.toFixed(2)} <span class="text-xs font-normal text-zinc-500">m</span>`;
       document.getElementById('kpi-work-mode').innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ${state.config.workMode}`;
 
-      // Dynamically display correct step/view
       if (!state.selectedTeam) {
         showView('view-step-team');
         renderTeamSelection();
@@ -390,9 +376,7 @@
       });
     }
 
-    // =======================================================
-    // STEP 1: TEAM SELECTION LOGIC
-    // =======================================================
+    // KROK 1: WYBÓR ZESPOŁU
     function renderTeamSelection() {
       const container = document.getElementById('team-list-container');
       container.innerHTML = "";
@@ -439,25 +423,20 @@
       renderApp();
     }
 
-    // =======================================================
-    // STEP 2: INVERTER SELECTION LOGIC
-    // =======================================================
+    // KROK 2: WYBÓR FALOWNIKA
     function renderInverterSelection() {
       document.getElementById('selected-team-display').innerText = state.selectedTeam;
       document.getElementById('team-total-display').innerText = `${calculateTeamTotal(state.selectedTeam).toFixed(2)} m`;
 
-      // Render Trafo Filter Tabs
       const filterContainer = document.getElementById('trafo-filter-container');
       filterContainer.innerHTML = "";
 
-      // Add "All" option
       const btnAll = document.createElement('button');
       btnAll.className = `px-3 py-1.5 rounded-full text-xs font-bold transition-all border whitespace-nowrap ${state.selectedTrafoFilter === 'Wszystkie' ? 'bg-emerald-500 text-black border-emerald-500 shadow-neon-glow' : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700'}`;
       btnAll.innerText = "Wszystkie";
       btnAll.onclick = () => filterTrafos('Wszystkie');
       filterContainer.appendChild(btnAll);
 
-      // Render actual Trafo tabs
       Object.keys(state.config.trafos).forEach(trafoName => {
         const btn = document.createElement('button');
         btn.className = `px-3 py-1.5 rounded-full text-xs font-bold transition-all border whitespace-nowrap ${state.selectedTrafoFilter === trafoName ? 'bg-emerald-500 text-black border-emerald-500 shadow-neon-glow' : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700'}`;
@@ -466,15 +445,12 @@
         filterContainer.appendChild(btn);
       });
 
-      // Render dynamic grid of Inverters
       const invertersContainer = document.getElementById('inverters-list-container');
       invertersContainer.innerHTML = "";
 
       Object.entries(state.config.trafos).forEach(([trafoName, wrCount]) => {
-        // Filter elements by active tab
         if (state.selectedTrafoFilter !== 'Wszystkie' && state.selectedTrafoFilter !== trafoName) return;
 
-        // Extract clean trafo number for WR format naming
         const trafoNum = trafoName.replace(/[^0-9]/g, "") || "1";
 
         for (let j = 1; j <= wrCount; j++) {
@@ -482,7 +458,6 @@
           const inverterTotal = calculateInverterTotal(inverterName);
           const hasData = inverterTotal > 0;
           
-          // Detect which team inserted data first
           const firstTeam = getInverterTeamOwner(inverterName);
 
           const button = document.createElement('button');
@@ -514,11 +489,9 @@
       state.selectedInverter = inverterName;
       state.activeTrafo = trafoName;
 
-      // Extract existing entries from global state database for this WR
       const existing = state.meters.filter(m => m.Falownik_WR === inverterName);
-
-      // Check for locking: is it locked because another team entered the data?
       const teamOwner = getInverterTeamOwner(inverterName);
+      
       if (teamOwner && teamOwner !== state.selectedTeam) {
         state.isEditLocked = true;
       } else {
@@ -528,7 +501,6 @@
       state.localEntries = [];
 
       if (existing.length > 0) {
-        // Map backend objects to our editable format
         state.localEntries = existing.map(e => ({
           ID: e.ID,
           Data_Wpisu: e.Data_Wpisu,
@@ -543,12 +515,9 @@
           Zapas: parseFloat(e.Zapas) || 0
         }));
       } else {
-        // Initialize clean entry structures depending on Work Mode
         if (state.config.workMode === "Bębny") {
-          // One default reel of 500m
           state.localEntries.push(createEmptyRecord("Bęben #1", 500));
         } else {
-          // String mode - dynamic strings count populated initially
           const strCount = state.config.stringsCount || 12;
           for (let s = 1; s <= strCount; s++) {
             state.localEntries.push(createEmptyRecord(`String #${s}`, 0));
@@ -560,7 +529,6 @@
       renderApp();
     }
 
-    // Helper to generate a standardized empty record
     function createEmptyRecord(label, defaultLength) {
       return {
         ID: generateUUID(),
@@ -577,9 +545,7 @@
       };
     }
 
-    // =======================================================
-    // STEP 3: MONTER FORM & CALCULATION ENGINE
-    // =======================================================
+    // KROK 3: WIDOK MONTERA I FORMULARZ
     function renderMonterForm() {
       document.getElementById('active-inverter-badge').innerText = state.selectedInverter;
       document.getElementById('active-team-display').innerText = state.selectedTeam;
@@ -587,7 +553,6 @@
       const liveSum = calculateInverterLiveTotal();
       document.getElementById('inverter-live-total').innerText = `${liveSum.toFixed(2)} m`;
 
-      // Render Lock banner UI
       const lockWarning = document.getElementById('lock-warning-badge');
       const lockTeamName = document.getElementById('locked-team-name');
       const btnAddRow = document.getElementById('btn-add-row');
@@ -604,7 +569,6 @@
         btnSaveSend.classList.remove('hidden');
       }
 
-      // Configure layout depending on dynamic configuration
       const recordsContainer = document.getElementById('records-list');
       recordsContainer.innerHTML = "";
 
@@ -618,14 +582,13 @@
       } else {
         modeTitle.innerText = "Tryb Stringów";
         rowsCounter.innerText = `Stringów: ${state.localEntries.length}`;
-        if (btnAddRow) btnAddRow.style.display = "none"; // Hard locked count
+        if (btnAddRow) btnAddRow.style.display = "none";
       }
 
       state.localEntries.forEach((entry, index) => {
         const itemRow = document.createElement('div');
         itemRow.className = "p-3.5 bg-zinc-950 border border-zinc-800/80 rounded-xl space-y-3 relative";
 
-        // Generate card layout based on Mode
         if (state.config.workMode === "Bębny") {
           itemRow.innerHTML = `
             <div class="flex justify-between items-center pb-2 border-b border-zinc-900">
@@ -639,46 +602,45 @@
             <div class="grid grid-cols-3 gap-2">
               <div>
                 <label class="text-[9px] text-zinc-500 font-bold block uppercase mb-1">Dł. całkowita (M)</label>
-                <input type="number" step="any" value="${entry.Dlugosc_Bebna}" oninput="updateRecordField(${index}, 'Dlugosc_Bebna', this.value)" ${state.isEditLocked ? 'disabled' : ''} class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
+                <input type="number" step="any" value="${entry.Dlugosc_Bebna}" oninput="updateRecordField(${index}, 'Dlugosc_Bebna', this.value)" onfocus="this.select()" ${state.isEditLocked ? 'disabled' : ''} class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
               </div>
               <div>
                 <label class="text-[9px] text-zinc-500 font-bold block uppercase mb-1">Start (M)</label>
-                <input type="number" step="any" value="${entry.Odczyt_Start}" oninput="updateRecordField(${index}, 'Odczyt_Start', this.value)" ${state.isEditLocked ? 'disabled' : ''} class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
+                <input type="number" step="any" value="${entry.Odczyt_Start}" oninput="updateRecordField(${index}, 'Odczyt_Start', this.value)" onfocus="this.select()" ${state.isEditLocked ? 'disabled' : ''} class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
               </div>
               <div>
                 <label class="text-[9px] text-zinc-500 font-bold block uppercase mb-1">Koniec (M)</label>
-                <input type="number" step="any" value="${entry.Odczyt_Koniec}" oninput="updateRecordField(${index}, 'Odczyt_Koniec', this.value)" ${state.isEditLocked ? 'disabled' : ''} class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
+                <input type="number" step="any" value="${entry.Odczyt_Koniec}" oninput="updateRecordField(${index}, 'Odczyt_Koniec', this.value)" onfocus="this.select()" ${state.isEditLocked ? 'disabled' : ''} class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
               </div>
             </div>
             <div class="grid grid-cols-2 gap-3 pt-2 border-t border-zinc-900/60 text-xs font-medium">
               <div class="flex items-center gap-1.5">
                 <span class="text-[9px] text-zinc-500 uppercase">Zużycie:</span>
-                <span class="font-extrabold text-emerald-400 text-xs">${entry.Zuzycie.toFixed(2)} m</span>
+                <span id="zuzycie-label-${index}" class="font-extrabold text-emerald-400 text-xs">${entry.Zuzycie.toFixed(2)} m</span>
               </div>
               <div class="flex items-center gap-1.5 justify-end">
                 <span class="text-[9px] text-zinc-500 uppercase">Zapas:</span>
-                <span class="font-extrabold text-indigo-400 text-xs">${entry.Zapas.toFixed(2)} m</span>
+                <span id="zapas-label-${index}" class="font-extrabold text-indigo-400 text-xs">${entry.Zapas.toFixed(2)} m</span>
               </div>
             </div>
           `;
         } else {
-          // String mode - simplified layouts
           itemRow.innerHTML = `
             <div class="flex items-center justify-between pb-1">
               <span class="font-bold text-xs text-zinc-300">${entry.Numer_Bębna_Stringu}</span>
               <div class="flex items-center gap-1">
                 <span class="text-[10px] text-zinc-500">Zużycie:</span>
-                <span class="text-xs font-black text-emerald-400">${entry.Zuzycie.toFixed(2)} m</span>
+                <span id="zuzycie-label-${index}" class="text-xs font-black text-emerald-400">${entry.Zuzycie.toFixed(2)} m</span>
               </div>
             </div>
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="text-[8px] text-zinc-500 font-bold block uppercase mb-1">Start (M)</label>
-                <input type="number" step="any" value="${entry.Odczyt_Start}" oninput="updateRecordField(${index}, 'Odczyt_Start', this.value)" ${state.isEditLocked ? 'disabled' : ''} class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
+                <input type="number" step="any" value="${entry.Odczyt_Start}" oninput="updateRecordField(${index}, 'Odczyt_Start', this.value)" onfocus="this.select()" ${state.isEditLocked ? 'disabled' : ''} class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
               </div>
               <div>
                 <label class="text-[8px] text-zinc-500 font-bold block uppercase mb-1">Koniec (M)</label>
-                <input type="number" step="any" value="${entry.Odczyt_Koniec}" oninput="updateRecordField(${index}, 'Odczyt_Koniec', this.value)" ${state.isEditLocked ? 'disabled' : ''} class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
+                <input type="number" step="any" value="${entry.Odczyt_Koniec}" oninput="updateRecordField(${index}, 'Odczyt_Koniec', this.value)" onfocus="this.select()" ${state.isEditLocked ? 'disabled' : ''} class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
               </div>
             </div>
           `;
@@ -688,7 +650,7 @@
       });
     }
 
-    // Dynamic field update logic with mathematical validation
+    // Dynamiczne przeliczanie wartości w czasie rzeczywistym bezpośrednio w DOM
     function updateRecordField(index, fieldName, value) {
       if (state.isEditLocked) return;
 
@@ -700,12 +662,11 @@
         record[fieldName] = parseFloat(value) || 0;
       }
 
-      // MATHEMATICAL FORMULA IMPLEMENTATION (Absolute value consumption / fallback logic)
       record.Zuzycie = Math.abs(record.Odczyt_Start - record.Odczyt_Koniec);
 
       if (state.config.workMode === "Bębny") {
         if (record.Dlugosc_Bebna === 0) {
-          record.Zapas = 0; // SPECIAL EXCEPTION: If length is 0, margin is forced to 0
+          record.Zapas = 0; 
         } else {
           record.Zapas = record.Dlugosc_Bebna - record.Zuzycie;
         }
@@ -716,12 +677,20 @@
 
       state.hasUnsavedChanges = true;
 
-      // Realtime update totals inside UI
       const liveSum = calculateInverterLiveTotal();
       document.getElementById('inverter-live-total').innerText = `${liveSum.toFixed(2)} m`;
+
+      const zuzycieLabel = document.getElementById(`zuzycie-label-${index}`);
+      if (zuzycieLabel) {
+        zuzycieLabel.innerText = `${record.Zuzycie.toFixed(2)} m`;
+      }
+
+      const zapasLabel = document.getElementById(`zapas-label-${index}`);
+      if (zapasLabel) {
+        zapasLabel.innerText = `${record.Zapas.toFixed(2)} m`;
+      }
     }
 
-    // Append new row in Reels mode (defaults to 500m)
     function addNewRecordRow() {
       if (state.isEditLocked) return;
 
@@ -731,7 +700,6 @@
       renderMonterForm();
     }
 
-    // Remove targeted row
     function removeRecordRow(index) {
       if (state.isEditLocked) return;
       if (state.localEntries.length <= 1) return;
@@ -741,7 +709,6 @@
       renderMonterForm();
     }
 
-    // Warn users trying to exit with unsaved changes
     function handleBackFromForm() {
       if (state.hasUnsavedChanges) {
         openWarningModal();
@@ -751,9 +718,7 @@
       }
     }
 
-    // =======================================================
-    // MATH AGGREGATIONS
-    // =======================================================
+    // AGREGACJE MATEMATYCZNE
     function calculateGrandTotal() {
       return state.meters.reduce((acc, entry) => acc + (parseFloat(entry.Zuzycie) || 0), 0);
     }
@@ -774,7 +739,6 @@
       return state.localEntries.reduce((acc, entry) => acc + (entry.Zuzycie || 0), 0);
     }
 
-    // Retrieve what team was first to save entries inside targeted inverter
     function getInverterTeamOwner(inverterName) {
       const records = state.meters.filter(m => m.Falownik_WR === inverterName);
       if (records.length > 0 && records[0].Team) {
@@ -783,9 +747,7 @@
       return null;
     }
 
-    // =======================================================
-    // DATABASE CLOUD SYNCHRONIZATION API
-    // =======================================================
+    // KOMUNIKACJA Z BACKENDEM GOOGLE APPS SCRIPT
     function showLoading(show, message = "Trwa synchronizacja danych...") {
       const overlay = document.getElementById('loading-overlay');
       const text = document.getElementById('loading-text');
@@ -797,7 +759,6 @@
       }
     }
 
-    // GET Request - Pull configuration and current dataset
     function fetchData() {
       if (!state.apiUrl) return;
 
@@ -805,7 +766,7 @@
 
       fetch(state.apiUrl)
         .then(response => {
-          if (!response.ok) throw new Error("Network response not OK");
+          if (!response.ok) throw new Error("Problem z siecią");
           return response.json();
         })
         .then(data => {
@@ -819,15 +780,14 @@
           }
         })
         .catch(error => {
-          console.error("API error:", error);
-          showStatusMessage("Błąd połączenia z chmurą. Pracujesz offline na danych z pamięci podręcznej.", "error");
+          console.error("Błąd API:", error);
+          showStatusMessage("Pracujesz offline. Dane pobrane z pamięci lokalnej.", "error");
         })
         .finally(() => {
           showLoading(false);
         });
     }
 
-    // POST Request - Push active inverter measurements to cloud
     function submitMetersToServer() {
       if (state.isEditLocked) return;
       if (!state.apiUrl) {
@@ -835,9 +795,8 @@
         return;
       }
 
-      showLoading(true, "Zapisywanie wpisów w Arkuszu Google...");
+      showLoading(true, "Zapisywanie pomiarów...");
 
-      // Set date timestamp before post
       const payloadDate = new Date().toLocaleString("pl-PL");
       const mappedPayload = state.localEntries.map(e => ({
         ...e,
@@ -852,38 +811,33 @@
 
       fetch(state.apiUrl, {
         method: 'POST',
-        mode: 'no-cors', // Standard cross-origin redirect fallback
+        mode: 'no-cors',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
       })
       .then(() => {
-        // Since no-cors hides response metadata, we will assume success,
-        // locally update database caches, reset dirty state and router back
         state.hasUnsavedChanges = false;
-        
-        // Remove old entries of this inverter and inject newly updated
         state.meters = state.meters.filter(m => m.Falownik_WR !== state.selectedInverter);
         state.meters = state.meters.concat(mappedPayload);
 
         showLoading(false);
         state.selectedInverter = "";
         renderApp();
-        showStatusMessage("Pomiary przesłane i zabezpieczone w chmurze!", "success");
+        showStatusMessage("Pomiary przesłane pomyślnie!", "success");
       })
       .catch(error => {
         showLoading(false);
-        console.error("Post error:", error);
-        showStatusMessage("Błąd zapisu danych w chmurze. Sprawdź połączenie sieciowe.", "error");
+        console.error("Błąd POST:", error);
+        showStatusMessage("Błąd połączenia. Zapis do chmury nie powiódł się.", "error");
       });
     }
 
-    // Execute Google Sheets remote factory reset
     function triggerFactoryReset() {
       if (!state.apiUrl) return;
 
-      showLoading(true, "Inicjowanie pełnego resetu fabrycznego...");
+      showLoading(true, "Przywracanie ustawień fabrycznych...");
 
       const body = {
         action: "factoryReset"
@@ -905,18 +859,16 @@
         state.meters = [];
         state.hasUnsavedChanges = false;
         fetchData();
-        showStatusMessage("Przywrócono konfigurację fabryczną Arkusza!", "success");
+        showStatusMessage("Wyczyszczono bazę i przywrócono stan fabryczny!", "success");
       })
       .catch(error => {
         showLoading(false);
-        console.error("Reset error:", error);
-        showStatusMessage("Błąd podczas resetowania danych.", "error");
+        console.error("Błąd resetowania:", error);
+        showStatusMessage("Nie udało się przeprowadzić resetu.", "error");
       });
     }
 
-    // =======================================================
-    // SYSTEM SETTINGS & UTILITY ENGINE
-    // =======================================================
+    // OBSŁUGA MODALI I USTAWIEŃ
     function openSettingsModal() {
       document.getElementById('input-api-url').value = state.apiUrl;
       document.getElementById('settings-msg').className = "hidden text-[11px] p-2 rounded-lg";
@@ -933,7 +885,7 @@
 
       if (!inputVal) {
         msg.className = "text-[11px] p-2 rounded-lg bg-red-950/50 text-red-300 border border-red-500/20";
-        msg.innerText = "URL skryptu nie może być pusty!";
+        msg.innerText = "Adres URL nie może być pusty!";
         msg.classList.remove('hidden');
         return;
       }
@@ -942,7 +894,7 @@
       localStorage.setItem('pv_cable_tracker_api_url', inputVal);
 
       msg.className = "text-[11px] p-2 rounded-lg bg-emerald-950/50 text-emerald-300 border border-emerald-500/20";
-      msg.innerText = "Adres API został pomyślnie zaktualizowany.";
+      msg.innerText = "Adres API został zapisany.";
       msg.classList.remove('hidden');
 
       setTimeout(() => {
@@ -951,7 +903,6 @@
       }, 800);
     }
 
-    // Custom non-blocking visual snackbars (alternative to alerts)
     function showStatusMessage(text, type = "success") {
       const banner = document.createElement('div');
       banner.className = `fixed bottom-4 left-4 right-4 md:left-auto md:max-w-md md:right-4 z-50 p-4 rounded-xl border flex items-center gap-3 shadow-xl transition-all duration-300 fade-in ${
@@ -975,7 +926,6 @@
       }, 4000);
     }
 
-    // Modal warnings controls
     function openWarningModal() {
       document.getElementById('custom-warning-modal').classList.remove('hidden');
     }
@@ -991,7 +941,6 @@
       renderApp();
     }
 
-    // UUID utility generator
     function generateUUID() {
       return 'rec-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
