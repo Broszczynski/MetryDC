@@ -20,7 +20,8 @@
           },
           boxShadow: {
             'neon-glow': '0 0 15px rgba(16, 185, 129, 0.35)',
-            'neon-glow-lg': '0 0 25px rgba(16, 185, 129, 0.5)'
+            'neon-glow-lg': '0 0 25px rgba(16, 185, 129, 0.5)',
+            'amber-glow': '0 0 15px rgba(245, 158, 11, 0.25)'
           }
         }
       }
@@ -199,12 +200,12 @@
         </span>
       </div>
 
-      <!-- Blokada edycji dla innych zespołów -->
-      <div id="lock-warning-badge" class="hidden bg-red-950/80 border border-red-500/30 text-red-200 rounded-xl p-3 flex items-start gap-2.5">
-        <svg class="w-5 h-5 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+      <!-- Dynamiczny Współdzielony Baner Współpracy (Zastępuje sztywną blokadę) -->
+      <div id="collaboration-warning-badge" class="hidden bg-amber-950/80 border border-amber-500/30 text-amber-200 rounded-xl p-3 flex items-start gap-2.5">
+        <svg class="w-5 h-5 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
         <div>
-          <h4 class="text-xs font-bold text-red-300">ZABLOKOWANE DO ODCZYTU</h4>
-          <p class="text-[11px] text-red-200/80 mt-0.5">Te dane zostały już wprowadzone i zsynchronizowane przez inny zespół (<span id="locked-team-name" class="font-bold underline"></span>). Nie możesz ich zmodyfikować.</p>
+          <h4 class="text-xs font-bold text-amber-300">FALOWNIK WSPÓŁDZIELONY (MULTIPLE TEAMS)</h4>
+          <p class="text-[11px] text-amber-200/80 mt-0.5">Wykryto pomiary wprowadzone przez inny zespół (<span id="other-teams-names" class="font-bold underline"></span>). Możesz swobodnie edytować istniejące dane, uzupełniać kolejne stringi lub dodawać nowe bębny dla swojego zespołu.</p>
         </div>
       </div>
 
@@ -242,7 +243,7 @@
         </div>
       </div>
 
-      <!-- Akcje zapisu -->
+      <!-- Akcje zapisu (Zawsze widoczne dla wszystkich zespołów) -->
       <div class="pt-2">
         <button id="btn-save-send" onclick="submitMetersToServer()" class="touch-target w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold rounded-xl shadow-neon-glow hover:shadow-neon-glow-lg transition-all flex items-center justify-center gap-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V3"></path></svg>
@@ -308,7 +309,7 @@
 
   <!-- STOPKA -->
   <footer class="mt-auto py-4 border-t border-zinc-900 bg-zinc-950/80 px-4 text-center">
-    <p class="text-[10px] text-zinc-600">PV Cable Tracker SPA v2.2.0 • System Ewidencji Zużycia Okablowania Solarnego</p>
+    <p class="text-[10px] text-zinc-600">PV Cable Tracker SPA v2.3.0 • System Ewidencji Zużycia Okablowania Solarnego</p>
   </footer>
 
   <!-- CORE SYSTEM JAVASCRIPT -->
@@ -326,8 +327,7 @@
       selectedTrafoFilter: "Wszystkie",
       selectedInverter: "",
       localEntries: [], 
-      hasUnsavedChanges: false,
-      isEditLocked: false
+      hasUnsavedChanges: false
     };
 
     window.onload = function() {
@@ -390,23 +390,20 @@
       });
     }
 
-    // POMOCNIK FORMATOWANIA DATY (Rozpoznaje format lokalny PL oraz ISO)
+    // POMOCNIK FORMATOWANIA DATY
     function getCleanDateString(dateVal) {
       if (!dateVal) return "Brak daty";
       
-      // Jeśli to jest obiekt Date
       let d = new Date(dateVal);
       if (!isNaN(d.getTime())) {
         return d.toLocaleDateString("pl-PL");
       }
       
-      // Dopasowanie do formatu "17.05.2026, 12:34:56"
       const match = String(dateVal).match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
       if (match) {
         return `${match[1].padStart(2, '0')}.${match[2].padStart(2, '0')}.${match[3]}`;
       }
       
-      // Dopasowanie do formatu ISO "2026-05-17"
       const isoMatch = String(dateVal).match(/(\d{4})-(\d{2})-(\d{2})/);
       if (isoMatch) {
         return `${isoMatch[3]}.${isoMatch[2]}.${isoMatch[1]}`;
@@ -420,14 +417,13 @@
       const container = document.getElementById('daily-reports-container');
       container.innerHTML = "";
 
-      // Grupowanie danych: { "17.05.2026": { "Team 1": 449.00, "Team 2": 541.00 } }
       const report = {};
       state.meters.forEach(entry => {
         const dateStr = getCleanDateString(entry.Data_Wpisu);
         const team = entry.Team || "Brak Zespołu";
         const zuzycie = parseFloat(entry.Zuzycie) || 0;
 
-        if (zuzycie <= 0) return; // Pomijamy puste wpisy
+        if (zuzycie <= 0) return;
 
         if (!report[dateStr]) {
           report[dateStr] = {};
@@ -444,7 +440,7 @@
         if (partsA.length === 3 && partsB.length === 3) {
           const dA = new Date(partsA[2], partsA[1] - 1, partsA[0]);
           const dB = new Date(partsB[2], partsB[1] - 1, partsB[0]);
-          return dB - dA; // Nowe daty na górze
+          return dB - dA;
         }
         return b.localeCompare(a);
       });
@@ -543,14 +539,12 @@
       const filterContainer = document.getElementById('trafo-filter-container');
       filterContainer.innerHTML = "";
 
-      // Przycisk "Wszystkie"
       const btnAll = document.createElement('button');
       btnAll.className = `px-3 py-1.5 rounded-full text-xs font-bold transition-all border whitespace-nowrap ${state.selectedTrafoFilter === 'Wszystkie' ? 'bg-emerald-500 text-black border-emerald-500 shadow-neon-glow' : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700'}`;
       btnAll.innerText = `Wszystkie (${calculateGrandTotal().toFixed(2)} m)`;
       btnAll.onclick = () => filterTrafos('Wszystkie');
       filterContainer.appendChild(btnAll);
 
-      // Przyciski konkretnych Trafo (pokazujące sumę dla danego Trafo na żywo)
       Object.keys(state.config.trafos).forEach(trafoName => {
         const trafoSum = calculateTrafoTotal(trafoName);
         const btn = document.createElement('button');
@@ -605,14 +599,6 @@
       state.activeTrafo = trafoName;
 
       const existing = state.meters.filter(m => m.Falownik_WR === inverterName);
-      const teamOwner = getInverterTeamOwner(inverterName);
-      
-      if (teamOwner && teamOwner !== state.selectedTeam) {
-        state.isEditLocked = true;
-      } else {
-        state.isEditLocked = false;
-      }
-
       state.localEntries = [];
 
       if (existing.length > 0) {
@@ -668,25 +654,26 @@
       const liveSum = calculateInverterLiveTotal();
       document.getElementById('inverter-live-total').innerText = `${liveSum.toFixed(2)} m`;
 
-      const lockWarning = document.getElementById('lock-warning-badge');
-      const lockTeamName = document.getElementById('locked-team-name');
-      const btnAddRow = document.getElementById('btn-add-row');
-      const btnSaveSend = document.getElementById('btn-save-send');
+      // Sprawdzenie, czy istnieją wpisy wpisane przez inny zespół niż aktywny
+      const otherTeams = [...new Set(state.localEntries
+        .filter(entry => entry.Team && entry.Team !== state.selectedTeam)
+        .map(entry => entry.Team)
+      )];
 
-      if (state.isEditLocked) {
-        lockWarning.classList.remove('hidden');
-        lockTeamName.innerText = getInverterTeamOwner(state.selectedInverter);
-        if (btnAddRow) btnAddRow.classList.add('hidden');
-        btnSaveSend.classList.add('hidden');
+      const collaborationWarning = document.getElementById('collaboration-warning-badge');
+      const otherTeamsNames = document.getElementById('other-teams-names');
+
+      if (otherTeams.length > 0) {
+        collaborationWarning.classList.remove('hidden');
+        otherTeamsNames.innerText = otherTeams.join(", ");
       } else {
-        lockWarning.classList.add('hidden');
-        if (btnAddRow) btnAddRow.classList.remove('hidden');
-        btnSaveSend.classList.remove('hidden');
+        collaborationWarning.classList.add('hidden');
       }
 
       const recordsContainer = document.getElementById('records-list');
       recordsContainer.innerHTML = "";
 
+      const btnAddRow = document.getElementById('btn-add-row');
       const modeTitle = document.getElementById('form-mode-title');
       const rowsCounter = document.getElementById('total-rows-counter');
 
@@ -702,31 +689,62 @@
 
       state.localEntries.forEach((entry, index) => {
         const itemRow = document.createElement('div');
-        itemRow.className = "p-3.5 bg-zinc-950 border border-zinc-800/80 rounded-xl space-y-3 relative";
+        
+        // Dynamiczne kolorowanie w zależności od zespołu-twórcy
+        const isMyTeam = (!entry.Team || entry.Team === state.selectedTeam);
+        let borderClass = "";
+        let headerHTML = "";
 
-        if (state.config.workMode === "Bębny") {
-          itemRow.innerHTML = `
+        if (isMyTeam) {
+          borderClass = "border-emerald-500/30 bg-zinc-950 hover:border-emerald-500/50";
+          headerHTML = `
             <div class="flex justify-between items-center pb-2 border-b border-zinc-900">
-              <!-- Zablokowana możliwość edycji nazwy bębna - wyświetlana jako ładny tekst -->
-              <span class="font-extrabold text-xs text-emerald-400 tracking-wider uppercase">${entry.Numer_Bębna_Stringu}</span>
-              ${(state.localEntries.length > 1 && !state.isEditLocked) ? `
+              <div class="flex items-center gap-2">
+                <span class="font-extrabold text-xs text-emerald-400 tracking-wider uppercase">${entry.Numer_Bębna_Stringu}</span>
+                <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md text-[9px] font-bold">Mój zespół</span>
+              </div>
+              ${(state.localEntries.length > 1) ? `
                 <button type="button" onclick="removeRecordRow(${index})" class="touch-target text-zinc-500 hover:text-red-400 transition-colors">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 </button>
               ` : ''}
             </div>
+          `;
+        } else {
+          // Ramka i styl ostrzegawczy pomarańczowy dla obcych teamów
+          borderClass = "border-amber-500/40 bg-amber-950/10 hover:border-amber-500/60 shadow-[0_0_10px_rgba(245,158,11,0.1)]";
+          headerHTML = `
+            <div class="flex justify-between items-center pb-2 border-b border-zinc-900/60">
+              <div class="flex items-center gap-2">
+                <span class="font-extrabold text-xs text-amber-400 tracking-wider uppercase">${entry.Numer_Bębna_Stringu}</span>
+                <span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md text-[9px] font-bold">Zapis: ${entry.Team}</span>
+              </div>
+              ${(state.localEntries.length > 1) ? `
+                <button type="button" onclick="removeRecordRow(${index})" class="touch-target text-zinc-500 hover:text-red-400 transition-colors" title="Usuń wpis innego zespołu">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+              ` : ''}
+            </div>
+          `;
+        }
+
+        itemRow.className = `p-3.5 border rounded-xl space-y-3 relative transition-all ${borderClass}`;
+
+        if (state.config.workMode === "Bębny") {
+          itemRow.innerHTML = `
+            ${headerHTML}
             <div class="grid grid-cols-3 gap-2">
               <div>
                 <label class="text-[9px] text-zinc-500 font-bold block uppercase mb-1">Dł. całkowita (M)</label>
-                <input type="number" step="any" value="${entry.Dlugosc_Bebna}" oninput="updateRecordField(${index}, 'Dlugosc_Bebna', this.value)" onfocus="this.select()" ${state.isEditLocked ? 'disabled' : ''} class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
+                <input type="number" step="any" value="${entry.Dlugosc_Bebna}" oninput="updateRecordField(${index}, 'Dlugosc_Bebna', this.value)" onfocus="this.select()" class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
               </div>
               <div>
                 <label class="text-[9px] text-zinc-500 font-bold block uppercase mb-1">Start (M)</label>
-                <input type="number" step="any" value="${entry.Odczyt_Start}" oninput="updateRecordField(${index}, 'Odczyt_Start', this.value)" onfocus="this.select()" ${state.isEditLocked ? 'disabled' : ''} class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
+                <input type="number" step="any" value="${entry.Odczyt_Start}" oninput="updateRecordField(${index}, 'Odczyt_Start', this.value)" onfocus="this.select()" class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
               </div>
               <div>
                 <label class="text-[9px] text-zinc-500 font-bold block uppercase mb-1">Koniec (M)</label>
-                <input type="number" step="any" value="${entry.Odczyt_Koniec}" oninput="updateRecordField(${index}, 'Odczyt_Koniec', this.value)" onfocus="this.select()" ${state.isEditLocked ? 'disabled' : ''} class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
+                <input type="number" step="any" value="${entry.Odczyt_Koniec}" oninput="updateRecordField(${index}, 'Odczyt_Koniec', this.value)" onfocus="this.select()" class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
               </div>
             </div>
             <div class="grid grid-cols-2 gap-3 pt-2 border-t border-zinc-900/60 text-xs font-medium">
@@ -741,10 +759,16 @@
             </div>
           `;
         } else {
+          // Tryb Stringi
           itemRow.innerHTML = `
-            <div class="flex items-center justify-between pb-1">
-              <!-- Nazwa stringu zablokowana do edycji -->
-              <span class="font-bold text-xs text-zinc-300 uppercase">${entry.Numer_Bębna_Stringu}</span>
+            <div class="flex items-center justify-between pb-1 border-b border-zinc-900/60 mb-2">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-xs text-zinc-300 uppercase">${entry.Numer_Bębna_Stringu}</span>
+                ${isMyTeam 
+                  ? `<span class="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[8px] font-bold">Mój zespół</span>` 
+                  : `<span class="px-1.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded text-[8px] font-bold">Zapis: ${entry.Team}</span>`
+                }
+              </div>
               <div class="flex items-center gap-1">
                 <span class="text-[10px] text-zinc-500">Zużycie:</span>
                 <span id="zuzycie-label-${index}" class="text-xs font-black text-emerald-400">${entry.Zuzycie.toFixed(2)} m</span>
@@ -753,11 +777,11 @@
             <div class="grid grid-cols-2 gap-2">
               <div>
                 <label class="text-[8px] text-zinc-500 font-bold block uppercase mb-1">Start (M)</label>
-                <input type="number" step="any" value="${entry.Odczyt_Start}" oninput="updateRecordField(${index}, 'Odczyt_Start', this.value)" onfocus="this.select()" ${state.isEditLocked ? 'disabled' : ''} class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
+                <input type="number" step="any" value="${entry.Odczyt_Start}" oninput="updateRecordField(${index}, 'Odczyt_Start', this.value)" onfocus="this.select()" class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
               </div>
               <div>
                 <label class="text-[8px] text-zinc-500 font-bold block uppercase mb-1">Koniec (M)</label>
-                <input type="number" step="any" value="${entry.Odczyt_Koniec}" oninput="updateRecordField(${index}, 'Odczyt_Koniec', this.value)" onfocus="this.select()" ${state.isEditLocked ? 'disabled' : ''} class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
+                <input type="number" step="any" value="${entry.Odczyt_Koniec}" oninput="updateRecordField(${index}, 'Odczyt_Koniec', this.value)" onfocus="this.select()" class="w-full bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-lg p-2 text-xs font-bold text-zinc-200 focus:outline-none">
               </div>
             </div>
           `;
@@ -769,8 +793,6 @@
 
     // Dynamiczne przeliczanie wartości w czasie rzeczywistym bezpośrednio w DOM
     function updateRecordField(index, fieldName, value) {
-      if (state.isEditLocked) return;
-
       const record = state.localEntries[index];
       
       if (fieldName === 'Numer_Bębna_Stringu') {
@@ -809,16 +831,14 @@
     }
 
     function addNewRecordRow() {
-      if (state.isEditLocked) return;
-
       const nextNum = state.localEntries.length + 1;
+      // Nowy rekord jest automatycznie przypisany do obecnie zalogowanego zespołu
       state.localEntries.push(createEmptyRecord(`Bęben #${nextNum}`, 500));
       state.hasUnsavedChanges = true;
       renderMonterForm();
     }
 
     function removeRecordRow(index) {
-      if (state.isEditLocked) return;
       if (state.localEntries.length <= 1) return;
 
       state.localEntries.splice(index, 1);
@@ -847,7 +867,6 @@
     }
 
     function calculateTrafoTotal(trafoName) {
-      // Wyciągnięcie samego numeru Trafostacji (np. "Trafo 1" -> "1")
       const cleanTrafoNum = trafoName.replace(/[^0-9]/g, "");
       return state.meters
         .filter(entry => {
@@ -917,7 +936,6 @@
     }
 
     function submitMetersToServer() {
-      if (state.isEditLocked) return;
       if (!state.apiUrl) {
         openSettingsModal();
         return;
@@ -925,10 +943,16 @@
 
       showLoading(true, "Zapisywanie pomiarów...");
 
-      // Rejestracja dokładnej daty zapisu
       const payloadDate = new Date().toLocaleString("pl-PL");
+      
+      // Jeśli modyfikujemy bębny, nowo dodane bębny/stringi mają już ustawiony nasz Team w state.localEntries.
+      // Aby zachować oryginalnego twórcę dla starych rekordów, wysyłamy je z przypisanymi wcześniej Teamami.
+      // Jeżeli zmieniliśmy wartość w starym rekordzie, możemy go opcjonalnie przerejestrować na nasz Team.
+      // Tutaj zachowujemy Team przypisany w obiekcie, co jest najbardziej sprawiedliwe.
       const mappedPayload = state.localEntries.map(e => ({
         ...e,
+        // Jeżeli rekord nie miał przypisanego zespołu, przypisujemy aktywny
+        Team: e.Team || state.selectedTeam,
         Data_Wpisu: payloadDate
       }));
 
@@ -1055,6 +1079,7 @@
       }, 4000);
     }
 
+    // Modal warnings controls
     function openWarningModal() {
       document.getElementById('custom-warning-modal').classList.remove('hidden');
     }
