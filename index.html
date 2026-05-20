@@ -659,7 +659,8 @@
           for (let j = 1; j <= wrCount; j++) {
             const inverterName = `WR ${trafoNum}.${j}`;
             const inverterTotal = calculateInverterTotal(inverterName, "DC");
-            const hasData = inverterTotal > 0;
+            const inverterRecords = state.meters.filter(m => m.Falownik_WR === inverterName && getCableType(m) === "DC");
+            const hasData = inverterRecords.length > 0;
             const isCompleted = isInverterCompleted(inverterName, "DC");
             
             const firstTeam = getInverterTeamOwner(inverterName, "DC");
@@ -711,7 +712,9 @@
 
         Object.keys(state.config.trafos).forEach(trafoName => {
           const trafoSum = calculateTrafoTotal(trafoName, "AC");
-          const hasData = trafoSum > 0;
+          const cleanTrafoNum = trafoName.replace(/[^0-9]/g, "");
+          const trafoRecords = state.meters.filter(m => getCableType(m) === "AC" && String(m.Trafostacja) === cleanTrafoNum);
+          const hasData = trafoRecords.length > 0;
           const isCompleted = isTrafoCompletedAC(trafoName);
           const firstTeam = getTrafoTeamOwnerAC(trafoName);
 
@@ -1024,7 +1027,7 @@
         const itemRow = document.createElement('div');
         itemRow.id = `record-row-${index}`;
         
-        const hasConsumption = entry.Zuzycie > 0;
+        const hasActiveData = (entry.Zuzycie > 0 || entry.Odczyt_Start > 0 || entry.Odczyt_Koniec > 0);
         const isMyTeam = (!entry.Team || entry.Team === state.selectedTeam);
 
         let borderClass = "";
@@ -1062,7 +1065,7 @@
               <span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md text-[9px] font-bold">Tryb Zamiany</span>
             </div>
           `;
-        } else if (!hasConsumption) {
+        } else if (!hasActiveData) {
           borderClass = "border-zinc-800/80 bg-zinc-950/40 hover:border-zinc-700";
           headerHTML = `
             <div class="flex items-center gap-2 flex-wrap">
@@ -1221,7 +1224,7 @@
       const rowElement = document.getElementById(`record-row-${index}`);
       const headerElement = document.getElementById(`record-header-${index}`);
       if (rowElement && headerElement) {
-        const hasConsumption = record.Zuzycie > 0;
+        const hasActiveData = (record.Zuzycie > 0 || record.Odczyt_Start > 0 || record.Odczyt_Koniec > 0);
         const isMyTeam = (!record.Team || record.Team === state.selectedTeam);
         const rowLabel = state.selectedCableType === "DC" ? record.Numer_Bębna_Stringu : record.Falownik_WR;
 
@@ -1256,7 +1259,7 @@
               <span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md text-[9px] font-bold">Tryb Zamiany</span>
             </div>
           `;
-        } else if (!hasConsumption) {
+        } else if (!hasActiveData) {
           rowElement.className = "p-3.5 border rounded-xl space-y-3 relative transition-all border-zinc-800/80 bg-zinc-950/40 hover:border-zinc-700";
           headerElement.innerHTML = `
             <div class="flex items-center gap-2">
@@ -1442,7 +1445,7 @@
 
       const payloadDate = new Date().toLocaleString("pl-PL");
       
-      const activeEntries = state.localEntries.filter(e => (parseFloat(e.Zuzycie) || 0) > 0);
+      const activeEntries = state.localEntries.filter(e => (parseFloat(e.Zuzycie) || 0) > 0 || (parseFloat(e.Odczyt_Start) || 0) > 0 || (parseFloat(e.Odczyt_Koniec) || 0) > 0);
 
       // Dodaj status gotowości z przełącznika do każdego wysyłanego rekordu
       const mappedPayload = activeEntries.map(e => ({
