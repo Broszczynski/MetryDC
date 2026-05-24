@@ -63,7 +63,7 @@
 </head>
 <body class="bg-zinc-950 text-zinc-100 font-sans antialiased min-h-screen flex flex-col selection:bg-emerald-500 selection:text-black">
 
-  <!-- TOP NAVIGATION / HEADER (Kompaktowa wysokość py-1.5) -->
+  <!-- TOP NAVIGATION / HEADER -->
   <header class="sticky top-0 z-40 bg-zinc-900/90 backdrop-blur-md border-b border-zinc-800 px-4 py-1.5 flex items-center justify-between shadow-lg">
     <div class="flex items-center space-x-2">
       <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981] animate-pulse"></div>
@@ -75,16 +75,13 @@
         <span class="w-1.5 h-1.5 rounded-full bg-zinc-500" id="network-dot"></span>
         <span id="network-text">Offline</span>
       </span>
-      <!-- Sync Button (Trzy strzałki tworzące okręg) -->
+      <!-- Sync Button -->
       <button onclick="fetchData()" id="btn-sync" class="p-1.5 text-zinc-400 hover:text-emerald-400 transition-colors rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 flex items-center justify-center" title="Synchronizuj dane">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-          <!-- Górna strzałka -->
           <path d="M12 2a10 10 0 0 1 10 10" />
           <path d="M22 7v5h-5" />
-          <!-- Dolno-prawa strzałka -->
           <path d="M22 12a10 10 0 0 1-15 8.66" />
           <path d="M11 21H6v-5" />
-          <!-- Lewa strzałka -->
           <path d="M7 20.66A10 10 0 0 1 12 2" />
           <path d="M7 6V1h5" />
         </svg>
@@ -111,19 +108,18 @@
   <!-- MAIN APP CONTAINER -->
   <main class="flex-grow p-4 md:max-w-4xl md:mx-auto w-full flex flex-col justify-start">
 
-    <!-- PRZEŁĄCZNIK DC / AC (Segmented Control) -->
+    <!-- PRZEŁĄCZNIK DC / AC -->
     <div id="cable-type-switcher-container" class="mb-4">
       <!-- Generowany dynamicznie w renderApp() -->
     </div>
 
-    <!-- SCREEN 1: TEAM SELECTION (KROK 1) -->
+    <!-- SCREEN 1: TEAM SELECTION -->
     <section id="view-step-team" class="fade-in space-y-4">
       <div class="text-center py-2">
         <h2 class="text-xl font-extrabold text-zinc-100 tracking-tight" id="step1-title">KROK 1: Wybór Zespołu (DC)</h2>
         <p class="text-xs text-zinc-400 mt-1">Wybierz swój zespół, aby rozpocząć ewidencjonowanie pomiarów</p>
       </div>
 
-      <!-- KAFELKI STATYSTYK -->
       <div class="grid grid-cols-2 gap-3" id="stats-cards-row">
         <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-3 flex flex-col justify-between">
           <span class="text-[10px] text-zinc-500 uppercase tracking-wide font-medium">Suma całkowita</span>
@@ -139,7 +135,6 @@
         <!-- Zespoły renderowane dynamicznie -->
       </div>
 
-      <!-- SYSTEM RAPORTÓW DZIENNYCH -->
       <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 mt-6 shadow-xl">
         <h3 class="text-xs font-black text-emerald-400 uppercase tracking-widest mb-3 flex items-center gap-2">
           <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
@@ -152,9 +147,8 @@
       </div>
     </section>
 
-    <!-- SCREEN 2: INVERTER/TRAFO SELECTION (KROK 2) -->
+    <!-- SCREEN 2: INVERTER/TRAFO SELECTION -->
     <section id="view-step-inverters" class="fade-in space-y-4 hidden">
-      <!-- Przycisk powrotu do Kroku 1 -->
       <button onclick="goBackToStep1()" class="touch-target flex items-center space-x-1.5 text-zinc-400 hover:text-emerald-400 text-sm font-semibold transition-colors">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
         <span>Wróć do Zespołów</span>
@@ -171,7 +165,6 @@
         </div>
       </div>
 
-      <!-- FILTR TRAFO (Widoczny tylko dla DC) -->
       <div id="trafo-filter-section">
         <span class="text-xs text-zinc-400 font-bold uppercase tracking-wider mb-2 block">Filtr Trafostacji (Zużycie)</span>
         <div id="trafo-filter-container" class="flex flex-wrap gap-2 overflow-x-auto pb-1">
@@ -179,7 +172,6 @@
         </div>
       </div>
 
-      <!-- LISTA INWERTERÓW / TRAFO -->
       <div class="space-y-2">
         <div class="flex justify-between items-center">
           <span class="text-xs text-zinc-400 font-bold uppercase tracking-wider" id="krok2-grid-title">Wybór Falownika (WR)</span>
@@ -191,59 +183,46 @@
       </div>
     </section>
 
-    <!-- SCREEN 3: MONTER INPUT FORM (KROK 3) -->
+    <!-- SCREEN 3: MONTER INPUT FORM -->
     <section id="view-step-monter-form" class="fade-in space-y-4 hidden">
-      <!-- Nawigacja wstecz i wskaźniki statusu (Wielofunkcyjny pasek sterowania) -->
       <div class="flex items-center justify-between flex-wrap gap-3 bg-zinc-900 border border-zinc-800/80 p-3 rounded-2xl shadow-md">
-        <!-- Przycisk powrotu skrócony do "<" -->
         <button onclick="handleBackFromForm()" class="touch-target flex items-center justify-center text-zinc-300 hover:text-emerald-400 text-lg font-black transition-colors w-10 h-10 bg-zinc-950 border border-zinc-800 rounded-xl" title="Wróć">
           &lt;
         </button>
         
-        <!-- Pasek narzędzi montera: Przełącznik gotowości -> Zapis (Dyskietka) -> Licznik -> Plakietki -->
         <div class="flex items-center space-x-1.5 ml-auto flex-wrap gap-y-1">
-          
-          <!-- Przełącznik Statusu Gotowości (Przesunięcie na lewo: Zakończone 🟢 / Prawo: W trakcie 🟡) -->
           <div class="flex items-center bg-zinc-950 border border-zinc-850 rounded-xl px-2 h-10 space-x-2">
             <span class="text-[9px] font-black text-zinc-500 uppercase tracking-wider select-none">Gotowe</span>
             <button id="toggle-completion" onclick="toggleCompletionStatus()" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-amber-500/10 border-amber-500/30" role="switch" aria-checked="false">
-              <!-- Kropka suwaka: domyślnie na prawo (translate-x-5) i na żółto -->
               <span id="toggle-completion-dot" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-amber-500 shadow-lg ring-0 transition duration-200 ease-in-out translate-x-5"></span>
             </button>
           </div>
 
-          <!-- Szybki zapis (Dyskietka) -->
           <button id="btn-save-send-top" onclick="submitMetersToServer()" class="touch-target w-10 h-10 bg-emerald-500 hover:bg-emerald-400 text-black rounded-xl shadow-neon-glow hover:shadow-neon-glow-lg transition-all flex items-center justify-center" title="Zapisz i wyślij do chmury">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V3"></path>
             </svg>
           </button>
 
-          <!-- Przeniesiony licznik elementów: bębny/stringi/falowniki: X -->
           <span id="top-drums-counter" class="text-[11px] font-black text-zinc-300 bg-zinc-950 border border-zinc-850 px-2.5 h-10 rounded-xl flex items-center whitespace-nowrap">
             B:1
           </span>
 
-          <!-- Plakietka aktywnego zespołu -->
           <span id="active-team-badge" class="h-10 px-3 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold tracking-wider flex items-center">
             Brak
           </span>
           
-          <!-- Plakietka aktywnego falownika / trafo -->
           <span id="active-inverter-badge" class="h-10 px-3 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold tracking-wider flex items-center">
             WR 1.1
           </span>
         </div>
       </div>
 
-      <!-- FORMULARZ POMIAROWY -->
       <div id="monter-fields-card" class="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 shadow-xl">
-        <!-- Dynamiczna lista wierszy pomiarów -->
         <div id="records-list" class="space-y-4">
           <!-- Generowane dynamicznie -->
         </div>
 
-        <!-- Przycisk zapisu na dole formularza -->
         <div class="mt-6 pt-4 border-t border-zinc-800">
           <button onclick="submitMetersToServer()" class="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black text-sm rounded-xl shadow-neon-glow hover:shadow-neon-glow-lg transition-all flex items-center justify-center gap-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -308,14 +287,12 @@
         </button>
       </div>
 
-      <!-- App Script API URL -->
       <div class="space-y-1">
         <label for="input-api-url" class="text-xs font-bold text-zinc-400 block">Google Web App URL (Apps Script):</label>
         <input type="text" id="input-api-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-zinc-200 focus:outline-none focus:border-emerald-500 transition-colors">
         <p class="text-[10px] text-zinc-500">Wklej pełny URL aplikacji sieciowej wdrożonej w edytorze skryptów Arkusza.</p>
       </div>
 
-      <!-- Komunikat powiadomień ustawień -->
       <div id="settings-msg" class="hidden text-[11px] p-2 rounded-lg"></div>
 
       <div class="grid grid-cols-2 gap-3 pt-2">
@@ -331,14 +308,14 @@
 
   <!-- STOPKA -->
   <footer class="mt-auto py-4 border-t border-zinc-900 bg-zinc-950/80 px-4 text-center">
-    <p class="text-[10px] text-zinc-600">PV Cable Tracker SPA v3.1.7 • System Ewidencji Zużycia Okablowania Solarnego</p>
+    <p class="text-[10px] text-zinc-600">PV Cable Tracker SPA v3.1.8 • System Ewidencji Zużycia Okablowania Solarnego</p>
   </footer>
 
   <!-- CORE SYSTEM JAVASCRIPT -->
   <script>
     let state = {
       apiUrl: localStorage.getItem('pv_cable_tracker_api_url') || '',
-      selectedCableType: "DC", // DC lub AC
+      selectedCableType: "DC", 
       config: {
         workMode: "Bębny",
         teamsCount: 2,
@@ -348,12 +325,12 @@
       meters: [], 
       selectedTeam: "",
       selectedTrafoFilter: "Wszystkie",
-      selectedInverter: "", // dla trybu DC
-      selectedTrafo: "",    // dla trybu AC
+      selectedInverter: "", 
+      selectedTrafo: "",    
       localEntries: [], 
       hasUnsavedChanges: false,
-      editMode: false, // Uniwersalny tryb edycji/zamiany kolejności wierszy
-      isCompleted: false // Status gotowości aktywnego falownika/trafostacji (Toggle)
+      editMode: false, 
+      isCompleted: false 
     };
 
     let pendingDeleteIndex = null;
@@ -388,7 +365,6 @@
       }
     }
 
-    // Bezpieczne pobieranie typu kabla
     function getCableType(entry) {
       return entry.Typ_Kabla || "DC";
     }
@@ -671,18 +647,15 @@
 
             if (hasData) {
               if (isCompleted) {
-                // Falownik ZAKOŃCZONY - zielona ramka, zielony licznik, neon glow
                 cardClass = "bg-zinc-900 border-emerald-500/50 hover:border-emerald-500 shadow-neon-glow";
                 textClass = "text-emerald-400";
                 dotHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]"></span>`;
               } else {
-                // Falownik W TRAKCIE (Domyślny) - żółta/bursztynowa ramka, żółty licznik, żółty glow
                 cardClass = "bg-zinc-900 border-amber-500/50 hover:border-amber-500 shadow-amber-glow";
                 textClass = "text-amber-400";
                 dotHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b]"></span>`;
               }
             } else {
-              // Brak wpisów - standardowy szary kfelek
               cardClass = "bg-zinc-900/45 border-zinc-800/80 hover:border-zinc-850";
               textClass = "text-zinc-400";
               dotHTML = "";
@@ -724,18 +697,15 @@
 
           if (hasData) {
             if (isCompleted) {
-              // Stacja ZAKOŃCZONA - zielona ramka, zielona suma, neon glow
               cardClass = "bg-zinc-900 border-emerald-500/50 hover:border-emerald-500 shadow-neon-glow";
               textClass = "text-emerald-400";
               dotHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]"></span>`;
             } else {
-              // Stacja W TRAKCIE (Domyślna) - żółta/bursztynowa ramka, żółta suma, amber glow
               cardClass = "bg-zinc-900 border-amber-500/50 hover:border-amber-500 shadow-amber-glow";
               textClass = "text-amber-400";
               dotHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b]"></span>`;
             }
           } else {
-            // Brak wpisów - standardowy szary kfelek
             cardClass = "bg-zinc-900/45 border-zinc-800/80 hover:border-zinc-850";
             textClass = "text-zinc-400";
             dotHTML = "";
@@ -780,7 +750,8 @@
         Zuzycie: 0,
         Zapas: 0,
         Typ_Kabla: state.selectedCableType,
-        Zakonczono: state.isCompleted
+        Zakonczono: state.isCompleted,
+        isEdited: false // Śledzi czy wiersz był modyfikowany/dodany (ważne dla samych zer!)
       };
     }
 
@@ -790,9 +761,8 @@
 
       const existing = state.meters.filter(m => m.Falownik_WR === inverterName && getCableType(m) === "DC");
       state.localEntries = [];
-      state.editMode = false; // reset edit mode
+      state.editMode = false;
 
-      // Odczytaj status gotowości z bazy dla tego urządzenia
       state.isCompleted = existing.some(e => e.Zakonczono === true || e.Zakonczono === "true" || e.Zakonczono === 1 || e.Zakonczono === "1");
 
       if (state.config.workMode === "Bębny") {
@@ -810,7 +780,8 @@
             Zuzycie: parseFloat(e.Zuzycie) || 0,
             Zapas: parseFloat(e.Zapas) || 0,
             Typ_Kabla: "DC",
-            Zakonczono: e.Zakonczono === true || e.Zakonczono === "true" || e.Zakonczono === 1 || e.Zakonczono === "1"
+            Zakonczono: e.Zakonczono === true || e.Zakonczono === "true" || e.Zakonczono === 1 || e.Zakonczono === "1",
+            isEdited: true // Jest w bazie, więc na pewno chcemy zachować
           }));
         } else {
           state.localEntries.push(createEmptyRecord("Bęben #1", 500));
@@ -835,7 +806,8 @@
               Zuzycie: parseFloat(found.Zuzycie) || 0,
               Zapas: parseFloat(found.Zapas) || 0,
               Typ_Kabla: "DC",
-              Zakonczono: found.Zakonczono === true || found.Zakonczono === "true" || found.Zakonczono === 1 || found.Zakonczono === "1"
+              Zakonczono: found.Zakonczono === true || found.Zakonczono === "true" || found.Zakonczono === 1 || found.Zakonczono === "1",
+              isEdited: true
             });
           } else {
             state.localEntries.push({
@@ -851,7 +823,8 @@
               Zuzycie: 0,
               Zapas: 0,
               Typ_Kabla: "DC",
-              Zakonczono: state.isCompleted
+              Zakonczono: state.isCompleted,
+              isEdited: false
             });
           }
         }
@@ -863,7 +836,7 @@
 
     function selectTrafoAC(trafoName) {
       state.selectedTrafo = trafoName;
-      state.editMode = false; // reset edit mode
+      state.editMode = false;
       
       const cleanTrafoNum = trafoName.replace(/[^0-9]/g, "") || "1";
       const wrCount = state.config.trafos[trafoName] || 12;
@@ -871,7 +844,6 @@
       const existing = state.meters.filter(m => getCableType(m) === "AC" && String(m.Trafostacja) === cleanTrafoNum);
       state.localEntries = [];
 
-      // Odczytaj status gotowości z bazy dla tej stacji
       state.isCompleted = existing.some(e => e.Zakonczono === true || e.Zakonczono === "true" || e.Zakonczono === 1 || e.Zakonczono === "1");
 
       for (let j = 1; j <= wrCount; j++) {
@@ -892,7 +864,8 @@
             Zuzycie: parseFloat(found.Zuzycie) || 0,
             Zapas: 0,
             Typ_Kabla: "AC",
-            Zakonczono: found.Zakonczono === true || found.Zakonczono === "true" || found.Zakonczono === 1 || found.Zakonczono === "1"
+            Zakonczono: found.Zakonczono === true || found.Zakonczono === "true" || found.Zakonczono === 1 || found.Zakonczono === "1",
+            isEdited: true
           });
         } else {
           state.localEntries.push({
@@ -908,7 +881,8 @@
             Zuzycie: 0,
             Zapas: 0,
             Typ_Kabla: "AC",
-            Zakonczono: state.isCompleted
+            Zakonczono: state.isCompleted,
+            isEdited: false
           });
         }
       }
@@ -921,9 +895,9 @@
       state.isCompleted = !state.isCompleted;
       state.hasUnsavedChanges = true;
       
-      // Zaktualizuj status w lokalnej strukturze danych wejściowych
       state.localEntries.forEach(entry => {
         entry.Zakonczono = state.isCompleted;
+        entry.isEdited = true; // Zaznaczamy wiersze na wymuszenie wysłania
       });
       
       updateToggleUI();
@@ -936,12 +910,10 @@
       if (!toggleBtn || !toggleDot) return;
 
       if (state.isCompleted) {
-        // ZAKOŃCZONE (Przesunięcie na lewo: translate-x-0)
         toggleBtn.className = "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-emerald-500/20 border-emerald-500/30";
         toggleDot.className = "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-emerald-500 shadow-lg ring-0 transition duration-200 ease-in-out translate-x-0";
         toggleBtn.setAttribute('aria-checked', 'true');
       } else {
-        // W TRAKCIE (Przesunięcie na prawo: translate-x-5 - domyślny status)
         toggleBtn.className = "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-amber-500/10 border-amber-500/30";
         toggleDot.className = "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-amber-500 shadow-lg ring-0 transition duration-200 ease-in-out translate-x-5";
         toggleBtn.setAttribute('aria-checked', 'false');
@@ -982,6 +954,8 @@
         state.localEntries[idx2].Falownik_WR = label2;
       }
       
+      state.localEntries[idx1].isEdited = true;
+      state.localEntries[idx2].isEdited = true;
       state.hasUnsavedChanges = true;
       renderMonterForm();
     }
@@ -1017,7 +991,6 @@
         topDrumsCounter.classList.remove('hidden');
       }
 
-      // Aktualizuj stan przełącznika "Gotowe" w UI
       updateToggleUI();
 
       const recordsContainer = document.getElementById('records-list');
@@ -1027,7 +1000,7 @@
         const itemRow = document.createElement('div');
         itemRow.id = `record-row-${index}`;
         
-        const hasActiveData = (entry.Zuzycie > 0 || entry.Odczyt_Start > 0 || entry.Odczyt_Koniec > 0);
+        const hasActiveData = (entry.isEdited || entry.Zuzycie > 0 || entry.Odczyt_Start > 0 || entry.Odczyt_Koniec > 0);
         const isMyTeam = (!entry.Team || entry.Team === state.selectedTeam);
 
         let borderClass = "";
@@ -1186,8 +1159,8 @@
         record[fieldName] = parseFloat(value) || 0;
       }
 
-      // Przypisz status gotowości przełącznika bezpośrednio do rekordu pomiarowego
       record.Zakonczono = state.isCompleted;
+      record.isEdited = true; // Flaga oznaczająca, że wpis został celowo zmodyfikowany
 
       if (record.Odczyt_Koniec > 0) {
         record.Zuzycie = Math.abs(record.Odczyt_Start - record.Odczyt_Koniec);
@@ -1224,7 +1197,7 @@
       const rowElement = document.getElementById(`record-row-${index}`);
       const headerElement = document.getElementById(`record-header-${index}`);
       if (rowElement && headerElement) {
-        const hasActiveData = (record.Zuzycie > 0 || record.Odczyt_Start > 0 || record.Odczyt_Koniec > 0);
+        const hasActiveData = (record.isEdited || record.Zuzycie > 0 || record.Odczyt_Start > 0 || record.Odczyt_Koniec > 0);
         const isMyTeam = (!record.Team || record.Team === state.selectedTeam);
         const rowLabel = state.selectedCableType === "DC" ? record.Numer_Bębna_Stringu : record.Falownik_WR;
 
@@ -1291,7 +1264,9 @@
 
     function addNewRecordRow() {
       const nextNum = state.localEntries.length + 1;
-      state.localEntries.push(createEmptyRecord(`Bęben #${nextNum}`, 500));
+      const newRecord = createEmptyRecord(`Bęben #${nextNum}`, 500);
+      newRecord.isEdited = true; // Zaznaczamy flagę dla nowo dodanego bębna, aby upewnić się, że zapisze się w bazie.
+      state.localEntries.push(newRecord);
       state.hasUnsavedChanges = true;
       renderMonterForm();
     }
@@ -1445,9 +1420,14 @@
 
       const payloadDate = new Date().toLocaleString("pl-PL");
       
-      const activeEntries = state.localEntries.filter(e => (parseFloat(e.Zuzycie) || 0) > 0 || (parseFloat(e.Odczyt_Start) || 0) > 0 || (parseFloat(e.Odczyt_Koniec) || 0) > 0);
+      // ZAKTUALIZOWANA LOGIKA FILTROWANIA - uwzględnia pole isEdited
+      const activeEntries = state.localEntries.filter(e => 
+        e.isEdited || 
+        (parseFloat(e.Zuzycie) || 0) > 0 || 
+        (parseFloat(e.Odczyt_Start) || 0) > 0 || 
+        (parseFloat(e.Odczyt_Koniec) || 0) > 0
+      );
 
-      // Dodaj status gotowości z przełącznika do każdego wysyłanego rekordu
       const mappedPayload = activeEntries.map(e => ({
         ...e,
         Team: e.Team || state.selectedTeam,
@@ -1472,9 +1452,8 @@
       })
       .then(() => {
         state.hasUnsavedChanges = false;
-        state.editMode = false; // reset edit mode
+        state.editMode = false;
         
-        // Aktualizacja lokalnego cache'u
         if (state.selectedCableType === "DC") {
           state.meters = state.meters.filter(m => !(m.Falownik_WR === state.selectedInverter && getCableType(m) === "DC"));
         } else {
@@ -1607,7 +1586,6 @@
       renderApp();
     }
 
-    // Bezpieczne generowanie UUID
     function generateUUID() {
       return 'rec-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
